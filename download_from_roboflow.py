@@ -87,7 +87,7 @@ def main():
 
 def print_next_steps(dest_path: Path):
     data_yaml = dest_path / "data.yaml"
-    print("\n✅ Dataset ready\n")
+    print("\nDataset ready\n")
     print(f"Location: {dest_path}")
     if data_yaml.exists():
         print(f"data.yaml: {data_yaml}\n")

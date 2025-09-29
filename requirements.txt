@@ -1,0 +1,24 @@
+roboflow
+opencv-python
+numpy
+pandas
+pyueye
+opencv-python-headless
+ultralytics>=8.2.0
+torch
+torchvision
+--extra-index-url https://download.pytorch.org/whl/cu121
+
+pandas
+# core
+numpy
+pyueye
+opencv-python-headless
+
+# roboflow pinned below 2.3 (which needs py>=3.11)
+roboflow<2.3
+
+# your other deps:
+# ultralytics==8.*       # (if you use YOLOv8)
+# pillow
+# tqdm
