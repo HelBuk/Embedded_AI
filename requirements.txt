@@ -5,6 +5,9 @@ pandas
 pyueye
 opencv-python-headless
 ultralytics>=8.2.0
+onemetric
+lap
+filterpy
 torch
 torchvision
 --extra-index-url https://download.pytorch.org/whl/cu121
