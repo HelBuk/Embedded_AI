@@ -22,6 +22,6 @@ opencv-python-headless
 roboflow<2.3
 
 # your other deps:
-# ultralytics==8.*       # (if you use YOLOv8)
+# ultralytics==8.*
 # pillow
 # tqdm
