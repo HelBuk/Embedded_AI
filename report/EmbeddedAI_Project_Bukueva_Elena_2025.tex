@@ -1,0 +1,215 @@
+\documentclass[12pt,a4paper]{report}
+
+% ======= Packages =======
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage[hidelinks]{hyperref}
+\usepackage{tocloft}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{siunitx}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{fancyhdr}
+
+% ======= Basic Formatting =======
+\onehalfspacing
+\setlength{\parskip}{6pt}
+\setlength{\parindent}{0pt}
+
+% TOC spacing a bit tighter
+\setlength{\cftbeforechapskip}{6pt}
+\setlength{\cftbeforesecskip}{2pt}
+
+% Chapter title style (compact and clean)
+\titleformat{\chapter}[block]{\Huge\bfseries}{\thechapter}{1em}{}
+\titlespacing*{\chapter}{0pt}{-6pt}{12pt}
+
+% Header/Footer
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\leftmark}
+\rfoot{\thepage}
+
+% ======= Title Page Variables (edit these) =======
+\newcommand{\ReportTitle}{Embedded AI}
+\newcommand{\AuthorName}{Bukueva Elena}
+\newcommand{\SupervisorName}{Geir Mathisen}
+
+\newcommand{\DepartmentName}{Faculty of Information Technology and Electrical Engineering}
+\newcommand{\InstitutionName}{Norwegian University of Science and Technology (NTNU)}
+\newcommand{\LocationDate}{Trondheim, \today}
+\newcommand{\ThesisType}{Project}
+
+% ======= Document =======
+\begin{document}
+
+
+\hypersetup{pageanchor=false} % avoid duplicate page anchors in front matter
+
+
+% ======= Front Page (mirrors “NTNU’s standard front page” placeholder) =======
+\begin{titlepage}
+    \centering
+    \vspace*{1cm}
+    {\Large \InstitutionName\par}
+    \vspace{1.0cm}
+    {\large \DepartmentName\par}
+    \vfill
+    {\LARGE \textbf{\ReportTitle}\par}
+    \vspace{0.3cm}
+    {\Large \ReportSubtitle\par}
+    \vspace{1.2cm}
+    {\Large \ThesisType\par}
+    \vspace{1.2cm}
+    \begin{tabular}{@{}ll}
+        Author:      & \AuthorName \\
+        Supervisor:  & \SupervisorName \\
+        Date:        & \LocationDate \\
+    \end{tabular}
+    \vfill
+    \includegraphics[width=0.25\textwidth]{ntnu_bredde_eng.png}\\[0.5cm]
+\end{titlepage}
+\cleardoublepage
+
+% ======= Task Description (Oppgavebeskrivelse) =======
+\chapter*{Task Description}
+% (As given)
+% Briefly restate the formal assignment/mandate for the thesis.
+
+\addcontentsline{toc}{chapter}{Task Description}
+
+% ======= Preface (Forord) =======
+\chapter*{Preface}
+% A short personal preface (thank-yous, context, acknowledgements).
+
+\addcontentsline{toc}{chapter}{Preface}
+
+% ======= Summary (Norwegian) and Abstract (English) =======
+% The original template includes both; we keep the format but write in English if you prefer.
+\chapter*{Summary}
+% Kort bakgrunn; hva er gjort; resultater; vurderinger.
+% If you want only English, you may leave this section brief or remove it if allowed.
+\addcontentsline{toc}{chapter}{Summary}
+
+\chapter*{Abstract (English)}
+% Short background; underlying theory (short/none); what is done; results; assessments.
+\addcontentsline{toc}{chapter}{Abstract (English)}
+
+% ======= Table of Contents =======
+\tableofcontents
+\cleardoublepage
+
+% ======= Abbreviations (Brukte forkortelser) =======
+\chapter*{Abbreviations}
+\addcontentsline{toc}{chapter}{Abbreviations}
+% Only include if needed
+\begin{longtable}{@{}p{3cm}p{10cm}@{}}
+EMC & Electromagnetic Compatibility \\
+% Add more as needed...
+\end{longtable}
+\cleardoublepage
+
+\cleardoublepage
+\hypersetup{pageanchor=true}
+
+% ======= 1 Introduction (Innledning) =======
+\chapter{Introduction}
+\section{Background of the Assignment}
+% Need, prior solutions, how this project fits into the bigger picture, what it builds upon.
+\section{Motivation}
+% Why this work is done.
+\section{Limitations}
+% Scope limitations; resource constraints and non-ideal choices.
+\section{Contributions}
+% Concise list of the novel/smart parts of the work.
+\section{Thesis Structure}
+% 1–3 sentences about what each chapter contains.
+
+% ======= 2 Literature Study (Litteraturstudie) =======
+\chapter{Literature Study}
+\noindent % short intro
+What has been done by others to solve our or similar problems?
+
+\section{Finding 1}
+% Summarize, cite, and analyze.
+\section{Finding 2}
+% Summarize, cite, and analyze.
+\section{Summary of the Literature Study}
+% Synthesize key takeaways, gaps, and implications for your work.
+
+% ======= 3 Theory (Teori) [only if needed] =======
+\chapter{Theory (Optional)}
+% Include only if your work needs a dedicated theory chapter.
+\section{Subtopic Example}
+% Core definitions, models, or math used later.
+
+% ======= 4 Proposed Solution / Design (Vårt forslag til løsning / design) =======
+\chapter{Proposed Solution / Design}
+\noindent
+% Short intro
+\section{Functional Specification}
+% Based on Task Description and Literature Study, specify what the system should do (externally),
+% and I/O specs; this will be referenced in the Discussion chapter.
+
+\section{Architecture / Design Details}
+% Modules, interfaces, diagrams, constraints, trade-offs.
+
+% ======= 5 Implementation (Vår implementering) =======
+\chapter{Implementation}
+\noindent
+% Short intro
+\section{Key Implementation Details}
+% Technologies, algorithms, data structures, configurations, noteworthy engineering decisions.
+
+% ======= 6 Testing / Results (Vår uttesting / Resultater) =======
+\chapter{Testing and Results}
+\noindent
+% Short intro
+\section{Experimental Setup}
+% Test bench, datasets, hardware, software versions, parameters.
+\section{Results}
+% Tables, figures; explain what the numbers mean.
+
+% ======= 7 Discussion (Diskusjon) =======
+\chapter{Discussion}
+% How to interpret results? Do they match expectations/specifications (from Functional Specification)?
+% Causes of deviations? What could be done differently? What should be added?
+% This leads into Future Work.
+\section{Discussion Points}
+% Organize by theme (performance, robustness, cost, etc.)
+
+% ======= 8 Conclusion (Konklusjon) =======
+\chapter{Conclusion}
+% Concise wrap-up: problem, approach, key results, contributions, significance.
+
+% ======= 9 Future Work (Videre arbeid) =======
+\chapter{Future Work}
+% Bullet-point summary tied to Discussion.
+\begin{itemize}[leftmargin=1.5em]
+    \item Item one
+    \item Item two
+    \item Item three
+\end{itemize}
+
+% ======= References (Referanseliste) =======
+\cleardoublepage
+\begin{thebibliography}{99}
+\bibitem{ref:example}
+Lastname, F. (Year). \textit{Title of the work}. Publisher/Conference/Journal.
+\end{thebibliography}
+
+% ======= Appendices (Vedlegg A/B) =======
+\appendix
+
+\chapter{Text (Appendix A)}
+% Additional materials, extended tables/figures, code listings if allowed.
+
+\chapter{Text (Appendix B)}
+% Additional materials.
+
+\end{document}
