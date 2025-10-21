@@ -23,9 +23,9 @@
 \contentsline {chapter}{\numberline {6}Testing and Results}{12}{chapter.6}%
 \contentsline {section}{\numberline {6.1}Experimental Setup}{12}{section.6.1}%
 \contentsline {section}{\numberline {6.2}Results}{12}{section.6.2}%
-\contentsline {chapter}{\numberline {7}Discussion}{13}{chapter.7}%
-\contentsline {section}{\numberline {7.1}Discussion Points}{13}{section.7.1}%
-\contentsline {chapter}{\numberline {8}Conclusion}{14}{chapter.8}%
-\contentsline {chapter}{\numberline {9}Future Work}{15}{chapter.9}%
-\contentsline {chapter}{\numberline {A}Text (Appendix A)}{17}{appendix.A}%
-\contentsline {chapter}{\numberline {B}Text (Appendix B)}{18}{appendix.B}%
+\contentsline {chapter}{\numberline {7}Discussion}{14}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Discussion Points}{14}{section.7.1}%
+\contentsline {chapter}{\numberline {8}Conclusion}{15}{chapter.8}%
+\contentsline {chapter}{\numberline {9}Future Work}{16}{chapter.9}%
+\contentsline {chapter}{\numberline {A}Text (Appendix A)}{18}{appendix.A}%
+\contentsline {chapter}{\numberline {B}Text (Appendix B)}{19}{appendix.B}%

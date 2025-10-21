@@ -11,10 +11,10 @@
 \usepackage{tocloft}
 \usepackage{titlesec}
 \usepackage{enumitem}
-\usepackage{siunitx}
 \usepackage{caption}
 \usepackage{float}
 \usepackage{fancyhdr}
+\usepackage{amsmath}
 
 % ======= Basic Formatting =======
 \onehalfspacing
@@ -44,6 +44,7 @@
 \newcommand{\InstitutionName}{Norwegian University of Science and Technology (NTNU)}
 \newcommand{\LocationDate}{Trondheim, \today}
 \newcommand{\ThesisType}{Project}
+\newcommand{\ReportSubtitle}{}
 
 % ======= Document =======
 \begin{document}
@@ -173,6 +174,79 @@ What has been done by others to solve our or similar problems?
 \section{Experimental Setup}
 % Test bench, datasets, hardware, software versions, parameters.
 \section{Results}
+
+\textbf{Metrics description}:
+
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{Intersection over Union (IoU)}: IoU plays role of evaluating an object localization.
+        It quantifies the overlap between a prediction and ground truth bounding boxes by calculating
+        the ratio of the intersection (overlapping area) to the union (total area covered by both boxes).
+        IoU is a building block for calculating mAP.
+        The resulting score is a value between 0 and 1, which quantifies how accurately a model has located an
+        object in an image. A score of 1 represents a perfect match, while a score of 0 indicates no
+        overlap at all. \\
+        The key part of using IoU is to define \textit{"IoU threshold"}. This threshold is a predefined value (e.g., 0.5)
+        that determines whether a prediction is correct. If the IoU score for a predicted box is above this threshold,
+        it is classified as a \textit{"true positive"}. If the score is below, it's a \textit{"false positive"}.
+        This threshold directly influences other performance metrics like Precision and Recall. \\
+
+\item \textbf{Precision and Recall}: Precision defines the proportion of true positives among all positive predictions, measuring the ability to avoid misclassification. On the other hand, Recall calculates the proportion of true positives among all actual positives, measuring the model's ability to detect all instances of a class.
+
+\item \textbf{Average Precision (AP)}: AP computes the area under the precision-recall curve, providing a single value that encapsulates the model's precision and recall performance.
+
+\item \textbf{Mean Average Precision (mAP)}: mAP extends the concept of AP by calculating the average AP values across multiple object classes. This is useful in multi-class object detection scenarios to provide a comprehensive evaluation of the model's performance.
+
+\item \textbf{F1 Score}: The F1 Score is the harmonic mean of precision and recall, providing a balanced assessment of a model's performance while considering both false positives and false negatives.
+\end{itemize}
+\begin{table}[!t]
+\centering
+\caption{Validation summaries.}
+\label{tab:val_summaries}
+\begin{subtable}{\linewidth}
+  \centering
+  \caption{YOLO8n}
+  \begin{tabular}{lrrrrrr}
+  \hline
+  Class & Images & Instances & Box(P) & R & mAP$_{50}$ & mAP$_{50\mbox{--}95}$ \\
+  \hline
+  all            & 98 & 363 & 0.927 & 0.951 & 0.964 & 0.733 \\
+  machine\_screw & 25 & 123 & 0.931 & 0.967 & 0.989 & 0.625 \\
+  miscellaneous  & 14 &  16 & 0.754 & 0.812 & 0.845 & 0.562 \\
+  nut            & 16 &  41 & 0.988 & 1.000 & 0.995 & 0.777 \\
+  washer         & 20 &  43 & 1.000 & 0.991 & 0.995 & 0.906 \\
+  wood\_screw    & 37 & 140 & 0.960 & 0.986 & 0.994 & 0.794 \\
+  \hline
+  \end{tabular}
+  \par\smallskip
+  \small Speed per image (GPU): preprocess 4.5\,ms; inference 6.0\,ms; loss 0.0\,ms; postprocess 2.5\,ms.
+\end{subtable}
+
+\medskip
+
+\begin{subtable}{\linewidth}
+  \centering
+  \caption{YOLO11s}
+  \begin{tabular}{lrrrrrr}
+  \hline
+  Class & Images & Instances & Box(P) & R & mAP$_{50}$ & mAP$_{50\mbox{--}95}$ \\
+  \hline
+  all            & 98 & 363 & 0.939 & 0.934 & 0.966 & 0.746 \\
+  machine\_screw & 25 & 123 & 0.877 & 0.983 & 0.978 & 0.649 \\
+  miscellaneous  & 14 &  16 & 0.899 & 0.688 & 0.867 & 0.565 \\
+  nut            & 16 &  41 & 0.970 & 1.000 & 0.995 & 0.805 \\
+  washer         & 20 &  43 & 0.973 & 1.000 & 0.995 & 0.909 \\
+  wood\_screw    & 37 & 140 & 0.978 & 1.000 & 0.995 & 0.802 \\
+  \hline
+  \end{tabular}
+  \par\smallskip
+  \small Speed per image (GPU): preprocess 4.5\,ms; inference 9.8\,ms; loss 0.0\,ms; postprocess 3.7\,ms.
+\end{subtable}
+\end{table}
+
+
+
+
+
 % Tables, figures; explain what the numbers mean.
 
 % ======= 7 Discussion (Diskusjon) =======
@@ -200,7 +274,9 @@ What has been done by others to solve our or similar problems?
 \cleardoublepage
 \begin{thebibliography}{99}
 \bibitem{YOLO}
-Redmon, Joseph, et al. "You only look once: Unified, real-time object detection." \textit{Proceedings of the IEEE conference on computer vision and pattern recognition}. 2016.
+    Redmon, Joseph, et al. "You only look once: Unified, real-time object detection." \textit{Proceedings of the IEEE conference on computer vision and pattern recognition}. 2016.
+\bibitem{COCO}
+    Lin, Tsung-Yi, et al. "Microsoft coco: Common objects in context." \textit{ European conference on computer vision. Cham: Springer International Publishing}. 2014.
 \end{thebibliography}
 
 % ======= Appendices (Vedlegg A/B) =======
