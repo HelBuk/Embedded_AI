@@ -3,11 +3,44 @@ from hailo_platform import (VDevice, HEF, ConfigureParams, InferVStreams, HailoS
 
 import cv2, numpy as np, time, os
 
-HEF_PATH  = "/home/pi/Documents/Embedded_AI/runs/detect/rf_yolov8n_fit8gb/weights/yolov8_custom.hef"
+HEF_PATH  = "/home/pi/Documents/Embedded_AI/runs/detect/run_v7-yolov8/rf_yolov8n_fit8gb/weights/yolov8_custom.hef"
 VIDEO_IN  = "/home/pi/Downloads/all.mp4"
-VIDEO_OUT = "/home/pi/Downloads/all_out.mp4"
-CONF_THRES = 0.25
-INPUT_SIZE = 768  # must match HEF
+VIDEO_OUT = "/home/pi/Downloads/all_out_new3.mp4"
+CONF_THRES = 0.5
+TOPK_PER_CLS = 10
+INPUT_SIZE = 960  # must match HEF
+
+# ---- styling ----
+CLASSES = ["screw", "nut", "washer", "cls3", "cls4"]  # put your real class names here
+
+# BGR colors (distinct, high-contrast)
+PALETTE = [
+    (40, 180, 99),   # green
+    (60, 76, 231),   # red-ish
+    (255, 191, 0),   # cyan-ish (remember: BGR)
+    (208, 80, 192),  # magenta
+    (0, 165, 255),   # orange
+]
+
+def class_color(i: int):
+    return PALETTE[i % len(PALETTE)]
+
+def draw_box_with_label(img, xyxy, label, color, lw=3, fs=0.8):
+    x1, y1, x2, y2 = map(int, xyxy)
+    cv2.rectangle(img, (x1, y1), (x2, y2), color, lw, lineType=cv2.LINE_AA)
+
+    # text background
+    (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, fs, max(lw-1, 1))
+    th = int(th * 1.3)  # a little padding
+    x2_bg = min(x1 + tw + 6, img.shape[1] - 1)
+    y2_bg = max(y1 - th - 4, 0)
+    cv2.rectangle(img, (x1, y1), (x2_bg, y2_bg), color, -1, lineType=cv2.LINE_AA)
+    fs = 10
+    # text
+    cv2.putText(img, label, (x1 + 3, y1 - 6),
+                cv2.FONT_HERSHEY_SIMPLEX, fs, (255, 255, 255), 2, cv2.LINE_AA)
+
+
 
 def letterbox(im, new=INPUT_SIZE, color=(114,114,114)):
     h, w = im.shape[:2]
@@ -94,11 +127,15 @@ def main():
                             boxes = arr[:, :4]                            # [ymin, xmin, ymax, xmax] in 0..1
                             scores = arr[:, 4]
 
-                            #keep = scores >= CONF_THRES
-                            # if not np.any(keep):
+                            keep = scores >= CONF_THRES
+                            if not np.any(keep):
                                 # continue
-                            # boxes = boxes[keep]
-                            # scores = scores[keep]
+                             boxes = boxes[keep]
+                             scores = scores[keep]
+                             
+                            if len(scores) > TOPK_PER_CLS:
+                                idx = np.argsort(-scores)[:TOPK_PER_CLS]
+                                boxes, scores = boxes[idx], scores[idx] 
 
                             # letterboxed pixels (0..768)
                             y1_lb = boxes[:, 0] * INPUT_SIZE
@@ -116,14 +153,18 @@ def main():
                             x1o = np.clip(x1o, 0, W - 1);  y1o = np.clip(y1o, 0, H - 1)
                             x2o = np.clip(x2o, 0, W - 1);  y2o = np.clip(y2o, 0, H - 1)
 
-                            # draw
+                            # scale line width and font size to frame size
+                            lw = max(2, int(round((W + H) / 800)))   # thicker lines
+                            fs = 0.7 + 0.3 * (W >= 1280)             # bigger font on larger frames
+
                             for j in range(len(scores)):
                                 p1 = (int(x1o[j]), int(y1o[j]))
                                 p2 = (int(x2o[j]), int(y2o[j]))
-                                cv2.rectangle(frame, p1, p2, (0,255,0), 2)
-                                cv2.putText(frame, f"{cls_idx} {float(scores[j]):.2f}",
-                                            (p1[0], max(0, p1[1]-6)),
-                                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1, cv2.LINE_AA)
+                                color = class_color(cls_idx)
+                                cls_name = CLASSES[cls_idx] if cls_idx < len(CLASSES) else f"cls{cls_idx}"
+                                label = f"{cls_name} {float(scores[j]):.2f}"
+                                draw_box_with_label(frame, (p1[0], p1[1], p2[0], p2[1]), label, color, lw=lw, fs=fs)
+
                     else:
                         print(f"[debug] unexpected NMS structure: type={type(batch0)}, shape={getattr(batch0,'shape',None)}")
                         break
