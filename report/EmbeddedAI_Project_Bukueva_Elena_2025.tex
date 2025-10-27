@@ -219,6 +219,8 @@ What has been done by others to solve our or similar problems?
   \end{tabular}
   \par\smallskip
   \small Speed per image (GPU): preprocess 4.5\,ms; inference 6.0\,ms; loss 0.0\,ms; postprocess 2.5\,ms.
+  \par\smallskip
+  \small Model summary (fused): 72 layers, 3,006,623 parameters, 0 gradients, 8.1 GFLOPs
 \end{subtable}
 
 \medskip
@@ -240,8 +242,36 @@ What has been done by others to solve our or similar problems?
   \end{tabular}
   \par\smallskip
   \small Speed per image (GPU): preprocess 4.5\,ms; inference 9.8\,ms; loss 0.0\,ms; postprocess 3.7\,ms.
+  \par\smallskip
+  \small YOLO11s summary (fused): 100 layers, 9,414,735 parameters, 0 gradients, 21.3 GFLOPs
 \end{subtable}
+
+\medskip
+
+\begin{subtable}{\linewidth}
+  \centering
+  \caption{YOLO11n}
+  \begin{tabular}{lrrrrrr}
+  \hline
+  Class & Images & Instances & Box(P) & R & mAP$_{50}$ & mAP$_{50\mbox{--}95}$ \\
+  \hline
+  all            & 98 & 363 & 0.921 & 0.935 & 0.964 & 0.739 \\
+  machine\_screw & 25 & 123 & 0.844 & 0.935 & 0.957 & 0.611 \\
+  miscellaneous  & 14 &  16 & 0.922 & 0.741 & 0.888 & 0.608 \\
+  nut            & 16 &  41 & 0.970 & 1.000 & 0.995 & 0.799 \\
+  washer         & 20 &  43 & 0.996 & 1.000 & 0.995 & 0.902 \\
+  wood\_screw    & 37 & 140 & 0.873 & 1.000 & 0.983 & 0.773 \\
+  \hline
+  \end{tabular}
+  \par\smallskip
+  \small Speed per image (GPU): preprocess 0.5\,ms; inference 5.6\,ms; loss 0.0\,ms; postprocess 0.9\,ms.
+  \par\smallskip
+  \small 100 layers, 2,583,127 parameters, 0 gradients, 6.3 GFLOPs.
+\end{subtable}
+
 \end{table}
+
+
 
 
 

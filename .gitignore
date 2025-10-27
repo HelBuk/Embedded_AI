@@ -2,3 +2,11 @@
 .data/
 /data
 calib/run_v7-yolov8/calib_nhwc_960.npy
+*.log
+*.whl
+*.npy
+.venv/
+.ipynb_checkpoints/
+*.avi
+dataset
+.install_logs
