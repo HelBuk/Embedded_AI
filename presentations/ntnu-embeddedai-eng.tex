@@ -3,99 +3,372 @@
 \usepackage{booktabs,listings}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
+\usepackage{subcaption}
 
+% --- Object detection metrics ------------------------------------
+\usepackage{amsmath}
+\newcommand{\TP}{\mathrm{TP}}
+\newcommand{\FP}{\mathrm{FP}}
+\newcommand{\FN}{\mathrm{FN}}
+\newcommand{\IoU}{\mathrm{IoU}}
+\newcommand{\AP}{\mathrm{AP}}
+\newcommand{\mAP}{\mathrm{mAP}}
+\newcommand{\Precision}{\mathrm{P}}
+\newcommand{\Recall}{\mathrm{R}}
 
 \definecolor{RoboflowPurple}{HTML}{6706CE}
 \definecolor{RoboflowGray}{HTML}{4B5563}
+\definecolor{RoboflowLightGray}{HTML}{D1D5DB}
+
 
 \usetheme[slogan=english,mathfont=serif]{NTNU}
 
-	\title[Title]{Embedded AI}
-	\subtitle{Real-Time Fastener Detection on Raspberry Pi}
-	\author{Bukueva Elena}
-	\date{\today}
+\newcommand{\toccard}[2]{%
+  \begin{beamercolorbox}[wd=\linewidth,rounded=true,sep=1ex,dp=1ex]{block body}%
+    \textbf{#1}\\[-.25ex]\footnotesize #2%
+  \end{beamercolorbox}}
+
+
+\title{Embedded AI}
+\subtitle{Real-Time Fastener Detection on Raspberry Pi}
+\author{Bukueva Elena}
+\date{\today}
 
 \begin{document}
 	\maketitle
-	\begin{frame}{Contents}
-		\tableofcontents
-	\end{frame}
-
-	\section{Introduction}
-	\begin{frame}{A typical slide}
-		\begin{itemize}
-			\item Write here the introduction
-			\item Use \texttt{itemize} or \texttt{enumerate} to organize your main points.
-		\end{itemize}
-		\begin{block}{Example}
-			Rather than freely writing text in the frame, the use of blocks (such as this) is recommended.
-			Here you can find a short introduction to the basis of beamer:
-			\begin{enumerate}
-				\item https://www.overleaf.com/learn/latex/beamer
-			\end{enumerate}
-		\end{block}
-	\end{frame}
-    % --- Work Flow ----------------------------------------------
-    	\section{Workflow}
-	\begin{frame}{Workflow}
-		\begin{itemize}
-            \item Set up Raspberry Pi 4/5:
-                \begin{itemize}
-                    \item Install OS
-                    \item Connect to the Wi-Fi network
-                    \item Install drivers for the camera - IDS SDK
-                \end{itemize}
-			\item Record videos via the camera, connected to Raspberry Pi
-            \item Annotate items via Roboflow framework
-            \item Run training on GPU
-            \item Test real-time detection on Raspberry Pi
-		\end{itemize}
-	\end{frame}
-    % --- Key camera specs slide ----------------------------------------------
-\section{Camera}
-\begin{frame}[c]{Camera (UI-3590CP-C-HQ Rev.2)}
-  \begin{columns}[c,onlytextwidth]
-    \begin{column}[c]{0.58\textwidth}
-      \scriptsize\renewcommand{\arraystretch}{1.12}
-      \begin{tabular}{@{}ll@{}}
-        \toprule
-        \multicolumn{2}{l}{\textbf{Sensor}}\\
-        \midrule
-        Resolution & 18.10 Mpix (4912$\times$3684) \\
-        Gain (master/RGB) & 16$\times$ / 4$\times$ \\
-        \midrule
-        \multicolumn{2}{l}{\textbf{Model}}\\
-        \midrule
-        Pixel clock range & 96–432\,MHz \\
-        Max frame rate (freerun/trigger) & 21 / 21\,fps \\
-        Exposure time (min–max) & 0.013–998\,ms \\
-        Power consumption & 1.5–3.3\,W \\
-        Image memory & 128\,MB \\
-        \midrule
-        \multicolumn{2}{l}{\textbf{Environment \& I/O}}\\
-        \midrule
-        Interface & USB 3.0 micro-B, screwable \\
-        \bottomrule
-      \end{tabular}
-    \end{column}
-
-    \begin{column}[c]{0.42\textwidth}
-      \centering
-      \includegraphics[width=\linewidth]{pics/camera.png}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-
-    \section{Annotation}
-	\begin{frame}{\textcolor{RoboflowPurple}{Roboflow}}
-        \vspace{0.6\baselineskip}
-        \textcolor{RoboflowGray}{Roboflow is a platform for rapid image annotation, with APIs to upload images
-        and export datasets in model-ready formats}
-        \vspace{0.4\baselineskip}
-        \begin{center}
-            \includegraphics[width=0.7\linewidth]{pics/roboflow_ex.png}
-        \end{center}
+%	\begin{frame}{Contents}
+%		\tableofcontents
+%	\end{frame}
+    \begin{frame}{Contents}
+          \vspace{0.10\textheight}
+          \begin{columns}[T,onlytextwidth]
+            \begin{column}{.48\textwidth}
+              \toccard{Introduction}{Project goals}
+              \toccard{Workflow}{Setup → record → annotate → train → deploy}
+              \toccard{Camera}{UI-3590CP-C-HQ Rev.2 specs}
+              \toccard{Annotation}{Roboflow pipeline}
+              \toccard{Hardware}{Raspberry Pi 5 + Hailo-8}
+            \end{column}
+            \begin{column}{.48\textwidth}
+              \toccard{Training}{YOLOv8/YOLOv11 baselines}
+              \toccard{Dataset}{Class balance \& examples}
+              \toccard{Metrics}{IoU, P/R, AP, mAP}
+              \toccard{Results}{Validation tables \& confusion matrix}
+              \toccard{References}{Links \& papers}
+            \end{column}
+          \end{columns}
     \end{frame}
 
+
+    \section{Introduction}
+    \begin{frame}{Project goals}
+          \begin{columns}[c,onlytextwidth]
+            \begin{column}{0.55\textwidth}
+              \small
+              \begin{itemize}\itemsep6pt
+                \item Deploy real-time fastener detection on Raspberry Pi 4 \& 5
+                \item Explore edge-AI constraints (latency, power, memory)
+                \item Evaluate state-of-the-art models and embedded performance
+              \end{itemize}
+            \end{column}
+            \begin{column}{0.45\textwidth}
+              \centering
+              \includegraphics[width=0.95\linewidth]{pics/raspberry-pi-5.png}
+            \end{column}
+          \end{columns}
+        \end{frame}
+    % --- Work Flow ----------------------------------------------
+    \section{Workflow}
+        \begin{frame}{Workflow}
+            \begin{itemize}
+                \item Set up Raspberry Pi 4/5:
+                    \begin{itemize}
+                        \item Install OS
+                        \item Install drivers for the camera - IDS SDK
+                    \end{itemize}
+                \item Record videos via the IDS camera, connected to the Raspberry Pi
+                \item Annotate video frames via Roboflow framework
+                \item Run training on the GPU
+                \item Test real-time detection on Raspberry Pi
+            \end{itemize}
+        \end{frame}
+    % --- Key camera specs slide ----------------------------------------------
+    \section{Camera}
+        \begin{frame}[c]{Camera (UI-3590CP-C-HQ Rev.2)}
+          \begin{columns}[c,onlytextwidth]
+            \begin{column}[c]{0.58\textwidth}
+              \scriptsize\renewcommand{\arraystretch}{1.12}
+              \begin{tabular}{@{}ll@{}}
+                \toprule
+                \multicolumn{2}{l}{\textbf{Sensor}}\\
+                \midrule
+                Resolution & 18.10 Mpix (4912$\times$3684) \\
+                Gain (master/RGB) & 16$\times$ / 4$\times$ \\
+                \midrule
+                \multicolumn{2}{l}{\textbf{Model}}\\
+                \midrule
+                Pixel clock range & 96–432\,MHz \\
+                Max frame rate (freerun/trigger) & 21 / 21\,fps \\
+                Exposure time (min–max) & 0.013–998\,ms \\
+                Power consumption & 1.5–3.3\,W \\
+                Image memory & 128\,MB \\
+                \midrule
+                \multicolumn{2}{l}{\textbf{Environment \& I/O}}\\
+                \midrule
+                Interface & USB 3.0 micro-B, screwable \\
+                \bottomrule
+              \end{tabular}
+            \end{column}
+
+            \begin{column}[c]{0.42\textwidth}
+              \centering
+              \includegraphics[width=0.7\linewidth]{pics/camera.png}
+            \end{column}
+          \end{columns}
+        \end{frame}
+
+    % --- Annotation ----------------------------------------------
+    \section{Annotation}
+        \begin{frame}{\textcolor{RoboflowPurple}{Roboflow}}
+            \vspace{0.6\baselineskip}
+            \textcolor{RoboflowGray}{For annotation we used Roboflow.}
+            \textcolor{RoboflowGray}{Roboflow is a platform for rapid image annotation, with APIs to upload images
+            and export datasets in model-ready formats.}
+            \vspace{0.4\baselineskip}
+            \begin{center}
+                \includegraphics[width=0.7\linewidth]{pics/roboflow_ex.png}
+            \end{center}
+        \end{frame}
+
+    % --- Raspberry Pi 5 specs slide ---------------------------------------------
+    \section{Hardware}
+        \begin{frame}{Raspberry Pi 5 }
+            \begin{columns}[c,onlytextwidth]
+                \begin{column}[c]{0.58\textwidth}
+                  \small
+                  \renewcommand{\arraystretch}{1.15}
+
+                  \begin{tabular}{@{}p{0.34\linewidth}p{0.63\linewidth}@{}}
+                    \multicolumn{2}{l}{\textbf{Compute}}\\
+                    \midrule
+                    SoC & 2.4\,GHz quad-core 64-bit Arm Cortex-A76 (crypto ext.); \\
+                        & 512\,KB L2 per core, \\
+                        & 2\,MB shared L3 \\
+                    GPU & VideoCore VII; OpenGL ES 3.1, Vulkan 1.3 \\
+
+                    \multicolumn{2}{l}{\textbf{Memory and Storage}}\\
+                    \midrule
+                    RAM &  8\, GB \\
+                    microSD & 64\, GB \\
+                    \midrule
+                  \end{tabular}
+
+                  \vspace{0.4em}
+                  {Hailo-8 accelerator offering 26 TOPS inferencing performance respectively\quad
+                         }
+                \end{column}
+
+                \begin{column}[c]{0.42\textwidth}
+                  \centering
+                  \includegraphics[width=\linewidth]{pics/hat_hailo.png}
+                \end{column}
+            \end{columns}
+
+        \end{frame}
+
+    % --- Training ----------------------------------------------
+    \section{Training}
+        \begin{frame}{Training}
+          \vspace{0.8\baselineskip}
+          \begin{columns}[c,onlytextwidth]
+                \begin{column}[c]{0.57\textwidth}
+                    YOLO remains the go-to family for the best speed–accuracy trade-off in object
+                    detection. \\
+                    We use the lightweight Small and Nano variants of YOLOv8 (2023)
+                    and YOLOv11 (2024) as baselines. \\
+
+                \end{column}
+
+                \begin{column}[c]{0.41\textwidth}
+                    After YOLOv4 the naming became community-driven different
+                    teams publish their own “vX” lines. \\
+                    For example, Ultralytics maintains v5, v8, and v11;
+                \end{column}
+          \end{columns}
+
+          \begin{block}
+              \centering
+              \includegraphics[width=0.7\linewidth]{pics/yolo.png}
+          \end{block}
+        \end{frame}
+
+        \section{Dataset}
+            \begin{frame}[c]{Dataset}
+              \centering
+              \includegraphics[width=0.65\textwidth]{pics/dataset.png}
+            \end{frame}
+
+    % --- Key Metrics ----------------------------------------------
+    \section{Metrcis}
+    \begin{frame}{Detection Metrics}
+        \vspace{0.6\baselineskip}
+        For a predicted box \(p\) and ground-truth box \(g\): \\
+        \small
+          \[
+            \IoU(p,g) = \frac{|p\cap g|}{|p\cup g|},
+            \Precision = \frac{\TP}{\TP+\FP},
+            \Recall = \frac{\TP}{\TP+\FN},
+            \AP_{\tau} = \int_{0}^{1} p(r;\tau)\,dr,
+          \]
+          \[
+            \mAP_{0.50} = \frac{1}{C}\sum_{c=1}^{C}\AP_{c,\,0.50},
+          \]
+          \[
+            \mAP_{[0.50:0.95]} = \frac{1}{C}\sum_{c=1}^{C}\frac{1}{10}
+                                 \sum_{k=0}^{9}\AP_{c,\,(0.50+0.05k)}.
+          \]
+        \begin{itemize}\itemsep2pt
+            \item \(\tau\): IoU threshold for TP/FP (0.50 for mAP50; 0.50–0.95 for COCO mAP).
+            \item AP is area under the precision–recall curve (confidence threshold is swept).
+            \item C is the number of object classes we’re evaluating over.
+        \end{itemize}
+    \end{frame}
+
+    % --- Validation Results ----------------------------------------------
+    \section{Results}
+    \begin{frame}{Results}
+        \begin{table}[!t]
+        \centering
+        \caption{Validation summaries.}
+        \label{tab:val_summaries}
+            \begin{subtable}{\linewidth}
+              \centering
+              \caption{YOLO8n}
+              \begin{tabular}{lrrrrrr}
+              \hline
+              Class & Images & Instances & Box(P) & R & mAP$_{50}$ & mAP$_{50\mbox{--}95}$ \\
+              \hline
+              all            & 98 & 363 & 0.927 & 0.951 & 0.964 & 0.733 \\
+              machine\_screw & 25 & 123 & 0.931 & 0.967 & 0.989 & 0.625 \\
+              miscellaneous  & 14 &  16 & 0.754 & 0.812 & 0.845 & 0.562 \\
+              nut            & 16 &  41 & 0.988 & 1.000 & 0.995 & 0.777 \\
+              washer         & 20 &  43 & 1.000 & 0.991 & 0.995 & 0.906 \\
+              wood\_screw    & 37 & 140 & 0.960 & 0.986 & 0.994 & 0.794 \\
+              \hline
+              \end{tabular}
+              \par\smallskip
+              \small Speed per image (GPU): preprocess 4.5\,ms; inference 6.0\,ms; loss 0.0\,ms; postprocess 2.5\,ms.
+              \par\smallskip
+              \small Model summary (fused): 72 layers, 3,006,623 parameters, 0 gradients, 8.1 GFLOPs
+            \end{subtable}
+        \end{table}
+     \end{frame}
+
+    \begin{frame}{Results}
+        \begin{table}[!t]
+            \centering
+            \caption{Validation summaries.}
+            \begin{subtable}{\linewidth}
+              \centering
+              \caption{YOLO11s}
+              \begin{tabular}{lrrrrrr}
+              \hline
+              Class & Images & Instances & Box(P) & R & mAP$_{50}$ & mAP$_{50\mbox{--}95}$ \\
+              \hline
+              all            & 98 & 363 & 0.939 & 0.934 & 0.966 & 0.746 \\
+              machine\_screw & 25 & 123 & 0.877 & 0.983 & 0.978 & 0.649 \\
+              miscellaneous  & 14 &  16 & 0.899 & 0.688 & 0.867 & 0.565 \\
+              nut            & 16 &  41 & 0.970 & 1.000 & 0.995 & 0.805 \\
+              washer         & 20 &  43 & 0.973 & 1.000 & 0.995 & 0.909 \\
+              wood\_screw    & 37 & 140 & 0.978 & 1.000 & 0.995 & 0.802 \\
+              \hline
+              \end{tabular}
+              \par\smallskip
+              \small Speed per image (GPU): preprocess 4.5\,ms; inference 9.8\,ms; loss 0.0\,ms; postprocess 3.7\,ms.
+              \par\smallskip
+              \small YOLO11s summary (fused): 100 layers, 9,414,735 parameters, 0 gradients, 21.3 GFLOPs
+            \end{subtable}
+        \end{table}
+    \end{frame}
+    \begin{frame}{Results}
+        \begin{table}[!t]
+            \centering
+            \caption{Validation summaries.}
+            \begin{subtable}{\linewidth}
+              \centering
+              \caption{YOLO11n}
+              \begin{tabular}{lrrrrrr}
+              \hline
+              Class & Images & Instances & Box(P) & R & mAP$_{50}$ & mAP$_{50\mbox{--}95}$ \\
+              \hline
+              all            & 98 & 363 & 0.921 & 0.935 & 0.964 & 0.739 \\
+              machine\_screw & 25 & 123 & 0.844 & 0.935 & 0.957 & 0.611 \\
+              miscellaneous  & 14 &  16 & 0.922 & 0.741 & 0.888 & 0.608 \\
+              nut            & 16 &  41 & 0.970 & 1.000 & 0.995 & 0.799 \\
+              washer         & 20 &  43 & 0.996 & 1.000 & 0.995 & 0.902 \\
+              wood\_screw    & 37 & 140 & 0.873 & 1.000 & 0.983 & 0.773 \\
+              \hline
+              \end{tabular}
+              \par\smallskip
+              \small Speed per image (GPU): preprocess 0.5\,ms; inference 5.6\,ms; loss 0.0\,ms; postprocess 0.9\,ms.
+              \par\smallskip
+              \small 100 layers, 2,583,127 parameters, 0 gradients, 6.3 GFLOPs.
+            \end{subtable}
+        \end{table}
+    \end{frame}
+
+    \section{Results}
+    \begin{frame}[c]{Results}
+        \begin{columns}[c,onlytextwidth]
+            \begin{column}[c]{0.49\textwidth}
+                \begin{figure}
+                    \centering
+                    \includegraphics[width=0.9\textwidth]{/home/elenabuk/EmbeddedAiProject/Embedded_AI/runs/detect/val6/val_batch2_labels.jpg}
+                    \caption{Ground truth: yolov8n}
+                \end{figure}
+            \end{column}
+            \begin{column}[c]{0.49\textwidth}
+                \begin{figure}
+                    \centering
+                    \includegraphics[width=0.9\textwidth]{/home/elenabuk/EmbeddedAiProject/Embedded_AI/runs/detect/val6/val_batch2_pred.jpg}
+                    \caption{Prediction: yolov8n}
+                \end{figure}
+            \end{column}
+        \end{columns}
+    \end{frame}
+
+    \section{Results}
+        \begin{frame}[c]{Results}
+            \vspace{0.6\baselineskip}
+            \begin{figure}
+                \centering
+                \includegraphics[width=0.6\textwidth]{/home/elenabuk/EmbeddedAiProject/Embedded_AI/runs/detect/val6/confusion_matrix_normalized.png}
+                \caption{Normalized Confusion Matrix: yolov8n}
+            \end{figure}
+    \end{frame}
+
+    % --- References ----------------------------------------------
+    \section{References}
+    \begin{frame}{References}
+      \vspace{0.6\baselineskip}
+      \small
+      \begin{itemize}
+        \item Slide 3 (picture): \url{https://www.raspberrypi.com/products/raspberry-pi-5/}
+        \item Slide 5 (picture \& specifications): \url{https://en.ids-imaging.com/download-details/AB00606.html}
+        \item Slide 6 (info \& color palette): \url{https://roboflow.com/brand\#colors} % note the \#
+        \item Slide 7 (picture): \url{https://www.raspberrypi.com/products/ai-hat/}
+      \end{itemize}
+    \end{frame}
+
+    \section{References}
+    \begin{frame}{References}
+      \vspace{0.6\baselineskip}
+      \small
+      \begin{itemize}
+        \item Redmon, Joseph, et al. "You only look once: Unified, real-time object detection."
+              \textit{Proceedings of the IEEE conference on computer vision and pattern recognition}. 2016.
+        \item Lin, Tsung-Yi, et al. "Microsoft coco: Common objects in context."
+              \textit{ European conference on computer vision. Cham: Springer International Publishing}. 2014.
+      \end{itemize}
+    \end{frame}
 \end{document}
