@@ -239,8 +239,6 @@
     \begin{frame}{Results}
         \begin{table}[!t]
         \centering
-        \caption{Validation summaries.}
-        \label{tab:val_summaries}
             \begin{subtable}{\linewidth}
               \centering
               \caption{YOLO8n}
@@ -258,6 +256,10 @@
               \end{tabular}
               \par\smallskip
               \small Speed per image (GPU): preprocess 4.5\,ms; inference 6.0\,ms; loss 0.0\,ms; postprocess 2.5\,ms.
+              \par\smallskip
+              \small Speed per image (Raspberry Pi 5): preprocess 8.3\,ms; inference 1018.4\,ms; loss 0.0\,ms; postprocess 1.2\,ms.
+              \par\smallskip
+              \small Speed per image (Raspberry Pi 5 + Hailo): Frames: 50, time: 18.5s, avg FPS: 2.71
               \par\smallskip
               \small Model summary (fused): 72 layers, 3,006,623 parameters, 0 gradients, 8.1 GFLOPs
             \end{subtable}
@@ -286,6 +288,8 @@
               \par\smallskip
               \small Speed per image (GPU): preprocess 4.5\,ms; inference 9.8\,ms; loss 0.0\,ms; postprocess 3.7\,ms.
               \par\smallskip
+              \small Speed per image (Raspberry Pi 5): preprocess 8.4\,ms; inference 2728.8\,ms; loss 0.0\,ms; postprocess 0.9\,ms.
+              \par\smallskip
               \small YOLO11s summary (fused): 100 layers, 9,414,735 parameters, 0 gradients, 21.3 GFLOPs
             \end{subtable}
         \end{table}
@@ -311,6 +315,8 @@
               \end{tabular}
               \par\smallskip
               \small Speed per image (GPU): preprocess 0.5\,ms; inference 5.6\,ms; loss 0.0\,ms; postprocess 0.9\,ms.
+              \par\smallskip
+              \small Speed per image (Raspberry Pi 5): preprocess 8.2\,ms; inference 998.4\,ms; loss 0.0\,ms; postprocess 1.0\,ms.
               \par\smallskip
               \small 100 layers, 2,583,127 parameters, 0 gradients, 6.3 GFLOPs.
             \end{subtable}
