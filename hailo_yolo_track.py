@@ -5,7 +5,7 @@ import cv2, numpy as np, time, os
 
 HEF_PATH  = "/home/pi/Documents/Embedded_AI/runs/detect/run_v7-yolov8/rf_yolov8n_fit8gb/weights/yolov8_custom.hef"
 VIDEO_IN  = "/home/pi/Downloads/all.mp4"
-VIDEO_OUT = "/home/pi/Downloads/all_out_new3.mp4"
+VIDEO_OUT = "/home/pi/Downloads/all_out_new4.mp4"
 CONF_THRES = 0.5
 TOPK_PER_CLS = 10
 INPUT_SIZE = 960  # must match HEF
