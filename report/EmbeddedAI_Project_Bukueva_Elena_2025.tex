@@ -16,6 +16,7 @@
 \usepackage{fancyhdr}
 \usepackage{amsmath}
 \usepackage{subcaption}
+\usepackage{url}
 
 
 \newcommand{\TP}{\mathrm{TP}}
@@ -144,48 +145,156 @@ EMC & Electromagnetic Compatibility \\
 
 % ======= 2 Literature Study (Litteraturstudie) =======
 \chapter{Literature Study}
-\noindent % short intro
-What has been done by others to solve our or similar problems?
+\noindent
 
 \section{Current state of the object detection models}
     Object detection models localize objects on an input picture or on a set of video frames.
     Localization can be performed by different approaches, the most relative to this work are:
     \begin{itemize}
-        \item Axis-aligned bounding  box (AABB): (x, y, w, h), which is cheap to annotate and fast to predict.
-        \item Oriented/rotated bounding box (OBB): apart from AABB an angle $\theta$ of the box is introduced, which is a bit costlier to label.
-        \item Polygon: a list of vertices tracing the object boundary. Provides precise geometry, however is time-consuming to label.
-        \item Pixel mask ("painted area") - most precise 2D shape, ideal for measurement and robotics, heaviest to annotate and train on.
+        \item Axis-aligned bounding  box (AABB): (x, y, w, h), which is cheap to annotate
+            and fast to predict.
+        \item Oriented/rotated bounding box (OBB): apart from AABB an angle $\theta$ of
+            the box is introduced,  which is a bit costlier to label.
+        \item Polygon: a list of vertices tracing the object boundary. Provides precise
+            geometry, however is time-consuming to label.
+        \item Pixel mask ("painted area") - most precise 2D shape, ideal for measurement
+            and robotics, heaviest to annotate and train on.
     \end{itemize}
 
+    Choosing the right localization strategy should be guided by the structure of
+the available pretrained weights. Training large detectors from scratch is
+both resource- and time-intensive. For example, Ultralytics estimates that
+training YOLOv5 on COCO (118k images, 300 epochs) on a single
+NVIDIA V100-16GB takes approximately $n/s/m/l/x \approx 1/2/4/6/8$ days,
+respectively \cite{UltralyticsYOLOv5Quickstart}. Collecting and annotating
+a dataset of that scale is even more time-consuming. Consequently,
+it is preferable to start from weights pretrained on a dataset whose
+\emph{labeling granularity} matches the task (e.g., axis-aligned boxes
+vs.\ oriented boxes vs.\ masks). If the required annotation is more
+detailed than the pretraining labels, an additional annotation
+effort is needed for transfer learning. Then, if axis-aligned bounding
+boxes (AABB) are too coarse for small or complex objects, a
+richer localization (e.g., oriented boxes or instance masks) to meet
+accuracy requirements would be a better choice.
+
+Mentioned earlier COCO dataset \cite{Lin2014COCO} is the common
+detection benchmark. It is big enough, varied, well-annotated and
+permissively licensed. The dataset contains photos of 91 objects
+types with a total of 2.5 million labeled instances in 328k
+images.
+
+COCO’s \cite{Lin2014COCO} official detection annotations are
+axis-aligned boxes only (bbox: [x, y, width, height]). There
+are no oriented boxes in COCO, so the standard YOLOv8/YOLO11
+\cite{Redmon2016YOLO} \textit{detect} checkpoints (trained
+on COCO 2017) learn AABB by default:
+
+\begin{verbatim}
+{
+  "id": 1768,
+  "image_id": 397133,
+  "category_id": 1,
+  "bbox": [73.0, 43.0, 199.0, 305.0],
+  "area": 39220.0,
+  "iscrowd": 0,
+  "segmentation": [
+    [78.0, 45.0, 86.0, 45.0, 95.0, 47.0, 101.0, 51.0, ...]
+  ]
+}
+\end{verbatim}
 
 
-    COCO’s \cite{COCO} official detection annotations are axis-aligned boxes only (bbox: [x, y, width, height]). There are no oriented boxes in COCO, so the standard YOLOv8/YOLO11 \textit{detect} checkpoints (trained on COCO 2017) learn AABB by default:
-    \begin{verbatim}
-    {
-      "id": 1768,
-      "image_id": 397133,
-      "category_id": 1,
-      "bbox": [73.0, 43.0, 199.0, 305.0],
-      "area": 39220.0,
-      "iscrowd": 0,
-      "segmentation": [
-        [78.0, 45.0, 86.0, 45.0, 95.0, 47.0, 101.0, 51.0, ...]
-      ]
-    }
-    \end{verbatim}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.5\linewidth]{pics/COCO_val2017_285.pdf}
+  \caption{Example picture from the COCO dataset with AABB annotation}
+\end{figure}
+
+For oriented bounding boxes (OBB), the DOTA dataset
+\cite{Xia2018DOTA} is the pioneering benchmark.
+Ultralytics provides YOLO \texttt{*-obb} weights pretrained
+on DOTA \cite{UltralyticsYOLO11Repo}.
+
+Other common datasets are:
+
+\begin{itemize}
+    \item Objects365 \cite{shao2019objects365} (~600k images, 365 classes):
+        broader coverage than COCO;
+        popular for pretraining backbones/heads before COCO fine-tuning.
+    \item Open Images \cite{kuznetsova2020open} (millions of images; boxes,
+        masks, relationships):
+        huge scale, but label noise is higher; great for scale, weaker for
+        cleanliness.
+\end{itemize}
+
+None of these datasets, however, include "fasteners" as a class.
+In order to particularly train model on fasteners, a MVTec screws
+dataset \cite{ulrich2019comparison} might be used.
+This dataset has oriented-box annotations for screws/nuts
+(384 images, 4,426 OBBs). However, the labeling.
+
+These are the 13 categories used in the MVTec Screws oriented-box dataset
+(category\_id $\to$ name) :
+
+1 $\to$ long lag screw \\
+2 $\to$ lag wood screw \\
+3 $\to$ wood screw \\
+4 $\to$ short wood screw \\
+5 $\to$ shiny screw \\
+6 $\to$ black oxide screw \\
+7 $\to$ nut \\
+8 $\to$ bolt \\
+9 $\to$ large nut \\
+10 $\to$ nut \\
+11 $\to$ nut \\
+12 $\to$ machine screw \\
+13 $\to$ short machine screw \\
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.5\linewidth]{pics/screws_dataset.png}
+  \caption{Example picture from the MVTec Screws dataset with OBB annotation \cite{NeuromatchScrews}}
+\end{figure}
+
+It is also possible to convert OBB annotation to AABB annotation with some
+loss of information. In order to do so:
+
+Let $w,h$ be side lengths and $\theta$ the rotation (radians, CCW). The tight
+axis-aligned box around the rotated rectangle has
+\begin{align}
+W_{\text{AABB}} &= \lvert\cos\theta\rvert\, w + \lvert\sin\theta\rvert\, h, \\
+H_{\text{AABB}} &= \lvert\sin\theta\rvert\, w + \lvert\cos\theta\rvert\, h .
+\end{align}
+With the same center $(c_x,c_y)$,
+\begin{align}
+x_{\min} &= c_x - \frac{W_{\text{AABB}}}{2}, &
+x_{\max} &= c_x + \frac{W_{\text{AABB}}}{2}, \\
+y_{\min} &= c_y - \frac{H_{\text{AABB}}}{2}, &
+y_{\max} &= c_y + \frac{H_{\text{AABB}}}{2}.
+\end{align}
+
+If the oriented box is given by four corners $(x_i,y_i)$, the enclosing AABB is
+\begin{align}
+x_{\min}=\min_i x_i,\quad x_{\max}=\max_i x_i,\qquad
+y_{\min}=\min_i y_i,\quad y_{\max}=\max_i y_i .
+\end{align}
+
+\textbf{COCO bbox} uses $[x_{\min},\,y_{\min},\,\text{width},\,\text{height}]$, then: \\
+\begin{align}
+\text{bbox}_{\text{COCO}}
+= \bigl[\, x_{\min},\; y_{\min},\; x_{\max}-x_{\min},\; y_{\max}-y_{\min} \,\bigr].
+\end{align}
+
+\textbf{YOLO txt} uses normalized $(x_\text{center},y_\text{center},w,h)$, then: \\
+Given image size $(W_{\text{img}},H_{\text{img}})$,
+\begin{align}
+x_\text{center} &= \frac{x_{\min}+x_{\max}}{2\,W_{\text{img}}}, &
+y_\text{center} &= \frac{y_{\min}+y_{\max}}{2\,H_{\text{img}}}, \\
+w               &= \frac{x_{\max}-x_{\min}}{W_{\text{img}}}, &
+h               &= \frac{y_{\max}-y_{\min}}{H_{\text{img}}}.
+\end{align}
 
 
-    \begin{figure}[H]
-      \centering
-      \includegraphics[width=0.5\linewidth]{pics/COCO_val2017_285.pdf}
-      \caption{Example picture from the COCO dataset with AABB annotation}
-    \end{figure}
-
-    For the oriented bounding box annotation the DOTA dataset \cite{DOTA} is used for YOLOv8 (YOLOv11) pretraining.
-
-
-
-% Summarize, cite, and analyze.
 
 \section{Finding 2}
 % Summarize, cite, and analyze.
@@ -259,7 +368,7 @@ What has been done by others to solve our or similar problems?
             \]
 
     \item \textbf{Average Precision (AP)}: \\
-        AP computes the area under the precision-recall curve \cite{Goodfellow}, providing a single value that encapsulates
+        AP computes the area under the precision-recall curve \cite{Goodfellow2016}, providing a single value that encapsulates
         the model's precision and recall performance. \\
         \[
             \AP_{\tau} = \int_{0}^{1} p(r;\tau)\,dr,
@@ -304,7 +413,7 @@ What has been done by others to solve our or similar problems?
 \label{tab:val_summaries}
 \begin{subtable}{\linewidth}
   \centering
-  \caption{YOLO8n}
+  \caption{YOLO8n \cite{yolov8_ultralytics}}
   \begin{tabular}{lrrrrrr}
   \hline
   Class & Images & Instances & Box(P) & R & mAP$_{50}$ & mAP$_{50\mbox{--}95}$ \\
@@ -354,7 +463,7 @@ What has been done by others to solve our or similar problems?
 
 \begin{subtable}{\linewidth}
   \centering
-  \caption{YOLO11n}
+  \caption{YOLO11n \cite{yolo11_ultralytics}}
   \begin{tabular}{lrrrrrr}
   \hline
   Class & Images & Instances & Box(P) & R & mAP$_{50}$ & mAP$_{50\mbox{--}95}$ \\
@@ -373,6 +482,43 @@ What has been done by others to solve our or similar problems?
   \small 100 layers, 2,583,127 parameters, 0 gradients, 6.3 GFLOPs.
 \end{subtable}
 
+\end{table}
+
+\begin{table}[tb]
+\centering
+\caption{YOLO \textit{nano} (n) variants on COCO at 640$\times$640.}
+\label{tab:yolo_n_variants}
+\begin{tabular}{lccc}
+\hline
+Model & Params (M) & FLOPs (B) & mAP$_{50\text{--}95}$ (val) \\
+\hline
+YOLOv5n & 1.9 & 4.5  & 28.0 \\
+YOLOv8n & 3.2 & 8.7  & 37.3 \\
+YOLO11n & 2.6 & 6.5  & 39.5 \\
+\hline
+\end{tabular}
+
+\medskip
+\footnotesize{Numbers from Ultralytics model cards: v5 \cite{UltralyticsYOLOv5}, v8 \cite{UltralyticsYOLOv8}, v11 \cite{UltralyticsYOLO11Repo}.}
+\end{table}
+
+% --- YOLO s-variants (COCO, 640x640) ---
+\begin{table}[tb]
+\centering
+\caption{YOLO \textit{small} (s) variants on COCO at 640$\times$640.}
+\label{tab:yolo_s_variants}
+\begin{tabular}{lccc}
+\hline
+Model & Params (M) & FLOPs (B) & mAP$_{50\text{--}95}$ (val) \\
+\hline
+YOLOv5s & 7.2  & 16.5 & 37.4 \\
+YOLOv8s & 11.2 & 28.6 & 44.9 \\
+YOLO11s & 9.4  & 21.5 & 47.0 \\
+\hline
+\end{tabular}
+
+\medskip
+\footnotesize{Numbers from Ultralytics model cards: v5 \cite{UltralyticsYOLOv5}, v8 \cite{UltralyticsYOLOv8}, v11 \cite{UltralyticsYOLO11Repo}.}
 \end{table}
 
 
@@ -405,18 +551,11 @@ What has been done by others to solve our or similar problems?
 \end{itemize}
 
 % ======= References (Referanseliste) =======
+
+\bibliographystyle{ieeetr}  % or plain, unsrt, abbrv, IEEEtran, etc.
+\bibliography{refs}
+
 \cleardoublepage
-\begin{thebibliography}{99}
-    \bibitem{DOTA}
-        Xia, Gui-Song, et al. "DOTA: A large-scale dataset for object detection in aerial images". \textit{Proceedings of the IEEE conference on computer vision and pattern recognition}. 2018.
-    \bibitem{Goodfellow}
-        Bengio, Yoshua, Ian Goodfellow, and Aaron Courville. \textit{Deep learning}. chapter 11.1 Performance Metrics. Cambridge, MA, USA: MIT press, 2017.
-    \bibitem{YOLO}
-        Redmon, Joseph, et al. "You only look once: Unified, real-time object detection." \textit{Proceedings of the IEEE conference on computer vision and pattern recognition}. 2016.
-    \bibitem{COCO}
-        Lin, Tsung-Yi, et al. "Microsoft coco: Common objects in context." \textit{ European conference on computer vision. Cham: Springer International Publishing}. 2014.
-    \bibitem{ultralytics} \url{https://docs.ultralytics.com/guides/yolo-performance-metrics/#visual-outputs}
-\end{thebibliography}
 
 % ======= Appendices (Vedlegg A/B) =======
 \appendix
