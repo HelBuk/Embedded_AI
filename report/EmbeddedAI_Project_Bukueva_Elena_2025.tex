@@ -15,6 +15,17 @@
 \usepackage{float}
 \usepackage{fancyhdr}
 \usepackage{amsmath}
+\usepackage{subcaption}
+
+
+\newcommand{\TP}{\mathrm{TP}}
+\newcommand{\FP}{\mathrm{FP}}
+\newcommand{\FN}{\mathrm{FN}}
+\newcommand{\IoU}{\mathrm{IoU}}
+\newcommand{\AP}{\mathrm{AP}}
+\newcommand{\mAP}{\mathrm{mAP}}
+\newcommand{\Precision}{\mathrm{P}}
+\newcommand{\Recall}{\mathrm{R}}
 
 % ======= Basic Formatting =======
 \onehalfspacing
@@ -136,8 +147,46 @@ EMC & Electromagnetic Compatibility \\
 \noindent % short intro
 What has been done by others to solve our or similar problems?
 
-\section{Finding 1}
+\section{Current state of the object detection models}
+    Object detection models localize objects on an input picture or on a set of video frames.
+    Localization can be performed by different approaches, the most relative to this work are:
+    \begin{itemize}
+        \item Axis-aligned bounding  box (AABB): (x, y, w, h), which is cheap to annotate and fast to predict.
+        \item Oriented/rotated bounding box (OBB): apart from AABB an angle $\theta$ of the box is introduced, which is a bit costlier to label.
+        \item Polygon: a list of vertices tracing the object boundary. Provides precise geometry, however is time-consuming to label.
+        \item Pixel mask ("painted area") - most precise 2D shape, ideal for measurement and robotics, heaviest to annotate and train on.
+    \end{itemize}
+
+
+
+    COCO’s \cite{COCO} official detection annotations are axis-aligned boxes only (bbox: [x, y, width, height]). There are no oriented boxes in COCO, so the standard YOLOv8/YOLO11 \textit{detect} checkpoints (trained on COCO 2017) learn AABB by default:
+    \begin{verbatim}
+    {
+      "id": 1768,
+      "image_id": 397133,
+      "category_id": 1,
+      "bbox": [73.0, 43.0, 199.0, 305.0],
+      "area": 39220.0,
+      "iscrowd": 0,
+      "segmentation": [
+        [78.0, 45.0, 86.0, 45.0, 95.0, 47.0, 101.0, 51.0, ...]
+      ]
+    }
+    \end{verbatim}
+
+
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.5\linewidth]{pics/COCO_val2017_285.pdf}
+      \caption{Example picture from the COCO dataset with AABB annotation}
+    \end{figure}
+
+    For the oriented bounding box annotation the DOTA dataset \cite{DOTA} is used for YOLOv8 (YOLOv11) pretraining.
+
+
+
 % Summarize, cite, and analyze.
+
 \section{Finding 2}
 % Summarize, cite, and analyze.
 \section{Summary of the Literature Study}
@@ -178,25 +227,76 @@ What has been done by others to solve our or similar problems?
 \textbf{Metrics description}:
 
 \begin{itemize}[leftmargin=1.5em]
-\item \textbf{Intersection over Union (IoU)}: IoU plays role of evaluating an object localization.
-        It quantifies the overlap between a prediction and ground truth bounding boxes by calculating
-        the ratio of the intersection (overlapping area) to the union (total area covered by both boxes).
-        IoU is a building block for calculating mAP.
-        The resulting score is a value between 0 and 1, which quantifies how accurately a model has located an
-        object in an image. A score of 1 represents a perfect match, while a score of 0 indicates no
-        overlap at all. \\
-        The key part of using IoU is to define \textit{"IoU threshold"}. This threshold is a predefined value (e.g., 0.5)
-        that determines whether a prediction is correct. If the IoU score for a predicted box is above this threshold,
-        it is classified as a \textit{"true positive"}. If the score is below, it's a \textit{"false positive"}.
-        This threshold directly influences other performance metrics like Precision and Recall. \\
+    \item \textbf{Intersection over Union (IoU)}: \\
+            For a predicted box \(p\) and ground-truth box \(g\), the IoU formula is: \\
+            \[
+                \IoU(p,g) = \frac{|p\cap g|}{|p\cup g|}
+            \]
+            IoU plays role of evaluating an object localization. \\
+            It quantifies the overlap between a prediction and ground truth bounding boxes by calculating
+            the ratio of the intersection (overlapping area) to the union (total area covered by both boxes).
+            IoU is a building block for calculating mAP. \\
+            The resulting score is a value between 0 and 1, which quantifies how accurately a model has located an
+            object in an image. A score of 1 represents a perfect match, while a score of 0 indicates no
+            overlap at all. \\
+            The key part of using IoU is to define \textit{"IoU threshold"}. This threshold is a predefined value
+            (e.g., 0.5) that determines whether a prediction is correct. If the IoU score for a predicted box is
+            above this threshold, it is classified as a \textit{"true positive"}.
+            If the score is below, it's a \textit{"false positive"}. \\
+            This threshold directly influences other performance metrics like Precision and Recall. \\
 
-\item \textbf{Precision and Recall}: Precision defines the proportion of true positives among all positive predictions, measuring the ability to avoid misclassification. On the other hand, Recall calculates the proportion of true positives among all actual positives, measuring the model's ability to detect all instances of a class.
+    \item \textbf{Precision and Recall}: \\
+            Precision defines the proportion of true positives among all positive predictions,
+            measuring the ability to avoid misclassification. \\
+            \[
+                \Precision = \frac{\TP}{\TP+\FP},
+            \]
 
-\item \textbf{Average Precision (AP)}: AP computes the area under the precision-recall curve, providing a single value that encapsulates the model's precision and recall performance.
+            On the other hand, Recall calculates the proportion of true positives among all actual
+            positives, measuring the model's ability to detect all instances of a class. \\
+            \[
+                \Recall = \frac{\TP}{\TP+\FN},
+            \]
 
-\item \textbf{Mean Average Precision (mAP)}: mAP extends the concept of AP by calculating the average AP values across multiple object classes. This is useful in multi-class object detection scenarios to provide a comprehensive evaluation of the model's performance.
+    \item \textbf{Average Precision (AP)}: \\
+        AP computes the area under the precision-recall curve \cite{Goodfellow}, providing a single value that encapsulates
+        the model's precision and recall performance. \\
+        \[
+            \AP_{\tau} = \int_{0}^{1} p(r;\tau)\,dr,
+        \]
+        In order to build the precision-recall curve, the score (confidence) threshold (t) is used:
+        \begin{itemize}[leftmargin=1.5em]
+            \item Every detection has a score $s \in [0,1]$.
+            \item We sweep t from high $\to$ low (equivalently sort detections by score desc and add them one-by-one).
+            \item At each t we keep detections with $s \ge t $ and recompute P/R.
+            \item This sweep produces the P–R curve.
+            \item AP is the area under this P–R curve;
+        \end{itemize}
+        \begin{figure}[H]
+          \centering
+          \includegraphics[width=0.8\linewidth]{pics/pr_concept.pdf}
+          \caption{Precision–Recall curve.}
+        \end{figure}
 
-\item \textbf{F1 Score}: The F1 Score is the harmonic mean of precision and recall, providing a balanced assessment of a model's performance while considering both false positives and false negatives.
+
+
+    \item \textbf{Mean Average Precision (mAP)}: \\
+        Another metric - mAP,  extends the concept of AP by calculating the average AP values
+        across multiple object classes. \\
+        This is useful in multi-class object detection scenarios to provide
+        a comprehensive evaluation of the model's performance.
+        \[
+            \mAP_{0.50} = \frac{1}{C}\sum_{c=1}^{C}\AP_{c,\,0.50},
+        \]
+        \[
+            \mAP_{[0.50:0.95]} = \frac{1}{C}\sum_{c=1}^{C}\frac{1}{10}
+                                 \sum_{k=0}^{9}\AP_{c,\,(0.50+0.05k)}.
+        \]
+        The parameter \(C\) is the number of classes for which detection and classification
+        are performed. \\
+        The subscript \(0.5\), as well as the set [0.50:0.95], denotes the IoU threshold: predictions
+        with \(\mathrm{IoU}\ge 0.5\) are counted as true positives (TP). \\
+
 \end{itemize}
 \begin{table}[!t]
 \centering
@@ -219,6 +319,10 @@ What has been done by others to solve our or similar problems?
   \end{tabular}
   \par\smallskip
   \small Speed per image (GPU): preprocess 4.5\,ms; inference 6.0\,ms; loss 0.0\,ms; postprocess 2.5\,ms.
+  \par\smallskip
+  \small Speed per image (Raspberry Pi 5): preprocess 8.3\,ms; inference 1018.4\,ms; loss 0.0\,ms; postprocess 1.2\,ms.
+  \par\smallskip
+  \small Speed per image (Raspberry Pi 5 + Hailo): Frames: 50, time: 18.5s, avg FPS: 2.71
   \par\smallskip
   \small Model summary (fused): 72 layers, 3,006,623 parameters, 0 gradients, 8.1 GFLOPs
 \end{subtable}
@@ -303,10 +407,15 @@ What has been done by others to solve our or similar problems?
 % ======= References (Referanseliste) =======
 \cleardoublepage
 \begin{thebibliography}{99}
-\bibitem{YOLO}
-    Redmon, Joseph, et al. "You only look once: Unified, real-time object detection." \textit{Proceedings of the IEEE conference on computer vision and pattern recognition}. 2016.
-\bibitem{COCO}
-    Lin, Tsung-Yi, et al. "Microsoft coco: Common objects in context." \textit{ European conference on computer vision. Cham: Springer International Publishing}. 2014.
+    \bibitem{DOTA}
+        Xia, Gui-Song, et al. "DOTA: A large-scale dataset for object detection in aerial images". \textit{Proceedings of the IEEE conference on computer vision and pattern recognition}. 2018.
+    \bibitem{Goodfellow}
+        Bengio, Yoshua, Ian Goodfellow, and Aaron Courville. \textit{Deep learning}. chapter 11.1 Performance Metrics. Cambridge, MA, USA: MIT press, 2017.
+    \bibitem{YOLO}
+        Redmon, Joseph, et al. "You only look once: Unified, real-time object detection." \textit{Proceedings of the IEEE conference on computer vision and pattern recognition}. 2016.
+    \bibitem{COCO}
+        Lin, Tsung-Yi, et al. "Microsoft coco: Common objects in context." \textit{ European conference on computer vision. Cham: Springer International Publishing}. 2014.
+    \bibitem{ultralytics} \url{https://docs.ultralytics.com/guides/yolo-performance-metrics/#visual-outputs}
 \end{thebibliography}
 
 % ======= Appendices (Vedlegg A/B) =======
