@@ -162,26 +162,26 @@ EMC & Electromagnetic Compatibility \\
     \end{itemize}
 
     Choosing the right localization strategy should be guided by the structure of
-the available pretrained weights. Training large detectors from scratch is
-both resource- and time-intensive. For example, Ultralytics estimates that
-training YOLOv5 on COCO (118k images, 300 epochs) on a single
-NVIDIA V100-16GB takes approximately $n/s/m/l/x \approx 1/2/4/6/8$ days,
-respectively \cite{UltralyticsYOLOv5Quickstart}. Collecting and annotating
-a dataset of that scale is even more time-consuming. Consequently,
-it is preferable to start from weights pretrained on a dataset whose
-\emph{labeling granularity} matches the task (e.g., axis-aligned boxes
-vs.\ oriented boxes vs.\ masks). If the required annotation is more
-detailed than the pretraining labels, an additional annotation
-effort is needed for transfer learning. Then, if axis-aligned bounding
-boxes (AABB) are too coarse for small or complex objects, a
-richer localization (e.g., oriented boxes or instance masks) to meet
-accuracy requirements would be a better choice.
+    the available pretrained weights. Training large detectors from scratch is
+    both resource- and time-intensive. For example, Ultralytics estimates that
+    training YOLOv5 on COCO (118k images, 300 epochs) on a single
+    NVIDIA V100-16GB takes approximately $n/s/m/l/x \approx 1/2/4/6/8$ days,
+    respectively \cite{UltralyticsYOLOv5Quickstart}. Collecting and annotating
+    a dataset of that scale is even more time-consuming. Consequently,
+    it is preferable to start from weights pretrained on a dataset whose
+    \emph{labeling granularity} matches the task (e.g., axis-aligned boxes
+    vs.\ oriented boxes vs.\ masks). If the required annotation is more
+    detailed than the pretraining labels, an additional annotation
+    effort is needed for transfer learning. Then, if axis-aligned bounding
+    boxes (AABB) are too coarse for small or complex objects, a
+    richer localization (e.g., oriented boxes or instance masks) to meet
+    accuracy requirements would be a better choice.
 
-Mentioned earlier COCO dataset \cite{Lin2014COCO} is the common
-detection benchmark. It is big enough, varied, well-annotated and
-permissively licensed. The dataset contains photos of 91 objects
-types with a total of 2.5 million labeled instances in 328k
-images.
+    Mentioned earlier COCO dataset \cite{Lin2014COCO} is the common
+    detection benchmark. It is big enough, varied, well-annotated and
+    permissively licensed. The dataset contains photos of 91 objects
+    types with a total of 2.5 million labeled instances in 328k
+    images.
 
 COCO’s \cite{Lin2014COCO} official detection annotations are
 axis-aligned boxes only (bbox: [x, y, width, height]). There
@@ -206,8 +206,8 @@ on COCO 2017) learn AABB by default:
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.5\linewidth]{pics/COCO_val2017_285.pdf}
-  \caption{Example picture from the COCO dataset with AABB annotation}
+  \includegraphics[width=0.3\linewidth]{pics/COCO_val2017_285.pdf}
+  \caption{Example picture from the COCO dataset with AABB annotation \cite{COCO_image_285}}
 \end{figure}
 
 For oriented bounding boxes (OBB), the DOTA dataset
@@ -227,7 +227,7 @@ Other common datasets are:
         cleanliness.
 \end{itemize}
 
-None of these datasets, however, include "fasteners" as a class.
+None of these datasets, however, include 'fasteners' as a class.
 In order to particularly train model on fasteners, a MVTec screws
 dataset \cite{ulrich2019comparison} might be used.
 This dataset has oriented-box annotations for screws/nuts
@@ -253,7 +253,7 @@ These are the 13 categories used in the MVTec Screws oriented-box dataset
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\linewidth]{pics/screws_dataset.png}
-  \caption{Example picture from the MVTec Screws dataset with OBB annotation \cite{NeuromatchScrews}}
+  \caption{Example picture from the MVTec Screws dataset with OBB annotation \cite{MVTec_Screws_2020}}
 \end{figure}
 
 It is also possible to convert OBB annotation to AABB annotation with some
@@ -295,8 +295,38 @@ h               &= \frac{y_{\max}-y_{\min}}{H_{\text{img}}}.
 \end{align}
 
 
+\section{The model choice}
+For Edge AI, the trade-off between computational speed and
+memory availability is critical. A model must not only deliver
+sufficiently high accuracy but also remain compact enough to fit
+onto resource-constrained devices such as microcontrollers.
 
-\section{Finding 2}
+Among the most popular development platforms is the Raspberry Pi
+family, which offers a flexible setting for deploying
+lightweight AI systems.
+Raspberry Pi 5 used for this work includes:
+
+\begin{tabular}{@{}p{0.34\linewidth}p{0.63\linewidth}@{}}
+    \multicolumn{2}{l}{\textbf{Compute}}\\
+    \midrule
+    SoC & 2.4\,GHz quad-core 64-bit Arm Cortex-A76 (crypto ext.); \\
+        & 512\,KB L2 per core, \\
+        & 2\,MB shared L3 \\
+    GPU & VideoCore VII; OpenGL ES 3.1, Vulkan 1.3 \\
+
+    \multicolumn{2}{l}{\textbf{Memory and Storage}}\\
+    \midrule
+    RAM &  8\, GB \\
+    microSD & 64\, GB \\
+    \midrule
+  \end{tabular}
+
+    An additional hardware used during the experiment is a Hailo-8
+    accelerator offering 26 TOPS inferencing performance
+    respectively
+
+  Raspberry Pi 5
+
 % Summarize, cite, and analyze.
 \section{Summary of the Literature Study}
 % Synthesize key takeaways, gaps, and implications for your work.
