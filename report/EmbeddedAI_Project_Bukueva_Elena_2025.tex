@@ -18,7 +18,6 @@
 \usepackage{subcaption}
 \usepackage{url}
 
-
 \newcommand{\TP}{\mathrm{TP}}
 \newcommand{\FP}{\mathrm{FP}}
 \newcommand{\FN}{\mathrm{FN}}
@@ -323,9 +322,58 @@ Raspberry Pi 5 used for this work includes:
 
     An additional hardware used during the experiment is a Hailo-8
     accelerator offering 26 TOPS inferencing performance
-    respectively
+    respectively.
 
-  Raspberry Pi 5
+    However, the YOLOv8 and YOLOv11 are both provided by Ultralitics
+    as a PyTorch checkout. In order to use it on accelerator, this checkout has
+    to be converted to a suitable format by Hailo Compiler.
+
+
+\section{Hailo Compiler}
+
+    Hailo compiler is needed to load user's models to the Hailo devices.
+    The final result of the compiler is a binary file \texttt{.hef}.
+    The standard DataFlow for this conversion consists of the three main steps:
+
+    \begin{itemize}
+        \item Translation of the source model to Hailo model;
+        \item Optimization of model parameters;
+        \item Compilation process itself;
+    \end{itemize}
+
+
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.5\linewidth]{pics/out_graph/hailo_flow.pdf}
+      \caption{Build Process \cite{hailo_manual}}
+      \label{fig:hailo_flow}
+    \end{figure}
+
+    The first step in the Figure \ref{fig:hailo_flow} is a translation from the user's
+    model to the \texttt{.har} representation. The Hailo Translation API parses user's model
+    and produces a \texttt{.har} (Hailo ARchive).
+
+    \begin{itemize}
+        \item HAR is a zip package that contains:
+        \begin{itemize}
+            \item HN— 'Hailo Network': a JSON graph of the network (layers,
+                tensor shapes/dtypes, connections, metadata).
+            \item NPZ—NumPy arrays with the floating-point weights(and sometimes
+                other tensors like batch normalization params).
+        \end{itemize}
+    \end{itemize}
+
+    This step is needed, so the parameters of the model are normalized from the other
+    possible checkpoint configurations (used operation and attributes names, FP32 weights),
+    and the optimizer has a clean input.
+
+
+
+\section{ONNX (Open Neural Network Exchange)}
+
+ONNX is an open format developed to unify ML models for a variety of
+frameworks and compilers by defining a common set of operators and
+represent models via graph structure.
 
 % Summarize, cite, and analyze.
 \section{Summary of the Literature Study}
@@ -553,6 +601,71 @@ YOLO11s & 9.4  & 21.5 & 47.0 \\
 
 
 
+\begin{table}[tb]
+  \centering
+  \caption{Hailo benchmark results for \texttt{yolov8\_custom}.}
+  \label{tab:hailo-bench}
+  \begin{tabular}{lll}
+    \toprule
+    Metric & Mode       & Value \\
+    \midrule
+    FPS    & HW-only    & 142.371 \\
+    FPS    & Streaming  & 142.370 \\
+    Latency & HW        & 10.796 ms \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+
+\begin{table}[tb]
+  \centering
+  \caption{HEF metadata (\texttt{yolov8\_custom.hef}).}
+  \label{tab:hef-meta}
+  \begin{tabular}{ll}
+    \toprule
+    Field & Value \\
+    \midrule
+    Architecture & HAILO8 \\
+    Network group & \texttt{yolov8\_custom} (Single Context) \\
+    Network & \texttt{yolov8\_custom/yolov8\_custom} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[tb]
+  \centering
+  \caption{VStream infos.}
+  \label{tab:vstream}
+  \begin{tabular}{lll}
+    \toprule
+    Direction & Name & Spec \\
+    \midrule
+    Input  & \texttt{yolov8\_custom/input\_layer1} & \texttt{UINT8, NHWC(960$\times$960$\times$3)} \\
+    Output & \texttt{yolov8\_custom/yolov8\_nms\_postprocess} & \texttt{FLOAT32, HAILO NMS BY CLASS} \\[-2pt]
+           &                                         & \small(number of classes: 5, max bboxes/class: 100, max frame size: 10020) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[tb]
+  \centering
+  \caption{Post-process (\texttt{YOLOV8-Post-Process}) parameters.}
+  \label{tab:nms-params}
+  \begin{tabular}{ll}
+    \toprule
+    Parameter & Value \\
+    \midrule
+    Op / Name & \texttt{YOLOV8 / YOLOV8-Post-Process} \\
+    Score threshold & 0.001 \\
+    IoU threshold & 0.70 \\
+    Classes & 5 \\
+    Cross classes & \texttt{false} \\
+    NMS results order & \texttt{BY\_CLASS} \\
+    Max bboxes per class & 100 \\
+    Image size & 960 $\times$ 960 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 
 
