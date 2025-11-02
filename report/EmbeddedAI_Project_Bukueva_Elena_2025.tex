@@ -408,11 +408,67 @@ Vulkan & Low-level graphics/compute API \\
 
     For Edge AI, the trade-off between computational speed and
     memory availability is critical. A model must not only deliver
-    sufficiently high accuracy but also remain compact enough to fit
+    sufficiently high accuracy, but also remain compact to fit
     onto resource-constrained devices such as microcontrollers.
 
-    YOLO models family provides SOTA lightweight models and shows good results
-    for both - the prediction accuracy and inference speed.
+    YOLO models family \ref{tab:yolo-timeline} has SOTA lightweight versions
+    of model small and efficient enough to be used on Edge-devices.
+    They show good results for both - the prediction accuracy and inference speed.
+
+    Before YOLO \cite{Redmon2016YOLO} the most common detection approaches used
+    two-stage pipelines. The first stage was responsible for generation of
+    the box, the other one for classification. It allowed to archive high
+    accuracy, but kept these models slow. The YOLO series introduced a single-one
+    stage detector - a single convolutional model predicts bounding boxes and
+    class probabilities in one pass over the image.
+
+
+    \begin{table}[t]
+    \centering
+    \label{tab:yolo2007_realtime}
+    \begin{tabular}{lccc}
+    \toprule
+    \textbf{Method} & \textbf{Train} & \textbf{mAP} & \textbf{FPS} \\
+    \midrule
+    \multicolumn{4}{l}{\emph{Real-Time}} \\
+    \midrule
+    100Hz DPM \cite{sadeghi2014dpm} & 2007 & 16.0 & 100 \\
+    30Hz DPM \cite{sadeghi2014dpm}  & 2007 & 26.1 & 30 \\
+    Fast YOLO                        & 2007+2012 & 52.7 & \textbf{155} \\
+    YOLO                             & 2007+2012 & \textbf{63.4} & 45 \\
+    \midrule
+    \multicolumn{4}{l}{\emph{Less Than Real-Time}} \\
+    \midrule
+    Fastest DPM \cite{yan2014fastestdpm}                & 2007 & 30.4 & 15 \\
+    R-CNN Minus R \cite{lenc2015rcnnminusr}             & 2007 & 53.5 & 6 \\
+    Fast R-CNN \cite{girshick2015fast}                  & 2007+2012 & 70.0 & 0.5 \\
+    Faster R-CNN (VGG-16) \cite{ren2015faster}          & 2007+2012 & 73.2 & 7 \\
+    Faster R-CNN (ZF) \cite{ren2015faster}              & 2007+2012 & 62.1 & 18 \\
+    YOLO VGG-16                                         & 2007+2012 & 66.4 & 21 \\
+    \bottomrule
+    \end{tabular}
+    \caption{Real-Time Systems on PASCAL VOC 2007. Fast YOLO is the fastest
+    detector and YOLO attains higher mAP while remaining real-time.
+    \cite{Redmon2016YOLO}}
+    \end{table}
+
+
+    \begin{figure}[!htbp]
+      \centering
+        \begin{subfigure}{0.48\columnwidth}
+        \includegraphics[width=0.6\linewidth]{pics/yolov8_start.pdf}
+        \caption{Start of the graph}
+        \label{fig:yolov8_start}
+      \end{subfigure}
+      \begin{subfigure}{0.48\columnwidth}  % or 0.48\textwidth in one-column docs
+        \includegraphics[width=0.6\linewidth]{pics/yolov8_end.pdf}
+        \caption{End of the graph}
+        \label{fig:yolo_end}
+      \end{subfigure}\hfill
+      \caption{ONNX representation of YOLOv8 layers.}
+      \label{fig:yolov8_pair}
+    \end{figure}
+
 
 
     \begin{table*}[t]
@@ -424,37 +480,37 @@ Vulkan & Low-level graphics/compute API \\
     \toprule
     \textbf{Release} & \textbf{Year} & \textbf{Tasks} & \textbf{Contributions} & \textbf{Framework} \\
     \midrule
-    YOLO {[5]}     & 2015 & Object Detection, Basic Classification
+    YOLO     & 2015 & Object Detection, Basic Classification
                    & Single-stage object detector
                    & Darknet \\
-    YOLOv2 {[7]}   & 2016 & Object Detection, Improved Classification
+    YOLOv2   & 2016 & Object Detection, Improved Classification
                    & Multi-scale training, dimension clustering
                    & Darknet \\
-    YOLOv3 {[8]}   & 2018 & Object Detection, Multi-scale Detection
+    YOLOv3   & 2018 & Object Detection, Multi-scale Detection
                    & SPP block, Darknet-53 backbone
                    & Darknet \\
-    YOLOv4 {[9]}   & 2020 & Object Detection, Basic Object Tracking
+    YOLOv4   & 2020 & Object Detection, Basic Object Tracking
                    & Mish activation, CSPDarknet-53 backbone
                    & Darknet \\
-    YOLOv5 {[10]}  & 2020 & Object Detection, Basic Instance Segmentation (via custom modifications)
+    YOLOv5  & 2020 & Object Detection, Basic Instance Segmentation (via custom modifications)
                    & Anchor-free detection, SWISH activation, PANet
                    & PyTorch \\
-    YOLOv6 {[11]}  & 2022 & Object Detection, Instance Segmentation
+    YOLOv6  & 2022 & Object Detection, Instance Segmentation
                    & Self-attention, anchor-free OD
                    & PyTorch \\
-    YOLOv7 {[12]}  & 2022 & Object Detection, Object Tracking, Instance Segmentation
+    YOLOv7  & 2022 & Object Detection, Object Tracking, Instance Segmentation
                    & Transformers, E-ELAN reparameterisation
                    & PyTorch \\
-    YOLOv8 {[13]}  & 2023 & Object Detection, Instance Segmentation, Panoptic Segmentation, Keypoint Estimation
+    YOLOv8  & 2023 & Object Detection, Instance Segmentation, Panoptic Segmentation, Keypoint Estimation
                    & GANs, anchor-free detection
                    & PyTorch \\
-    YOLOv9 {[14]}  & 2024 & Object Detection, Instance Segmentation
+    YOLOv9  & 2024 & Object Detection, Instance Segmentation
                    & PGI and GELAN
                    & PyTorch \\
-    YOLOv10 {[15]} & 2024 & Object Detection
+    YOLOv10 & 2024 & Object Detection
                    & Consistent dual assignments for NMS-free training
                    & PyTorch \\
-    YOLOv11 {[16]} & 2024 & Object Detection; (variants for) Instance Segmentation, Pose, OBB
+    YOLOv11 & 2024 & Object Detection; (variants for) Instance Segmentation, Pose, OBB
                & Updated training pipeline and architectures; better accuracy–speed trade-offs; streamlined exports (ONNX/TensorRT) in Ultralytics
                & PyTorch \\
     \bottomrule
