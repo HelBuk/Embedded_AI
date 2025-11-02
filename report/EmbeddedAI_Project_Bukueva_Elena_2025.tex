@@ -17,6 +17,8 @@
 \usepackage{amsmath}
 \usepackage{subcaption}
 \usepackage{url}
+\usepackage{csquotes}
+\usepackage{tabularx}
 
 \newcommand{\TP}{\mathrm{TP}}
 \newcommand{\FP}{\mathrm{FP}}
@@ -76,7 +78,7 @@
     \vspace{0.3cm}
     {\Large \ReportSubtitle\par}
     \vspace{1.2cm}
-    {\Large \ThesisType\par}
+    {\Large \textbf{\ThesisType}\par}
     \vspace{1.2cm}
     \begin{tabular}{@{}ll}
         Author:      & \AuthorName \\
@@ -90,28 +92,99 @@
 
 % ======= Task Description (Oppgavebeskrivelse) =======
 \chapter*{Task Description}
-% (As given)
-% Briefly restate the formal assignment/mandate for the thesis.
-
 \addcontentsline{toc}{chapter}{Task Description}
 
-% ======= Preface (Forord) =======
-\chapter*{Preface}
-% A short personal preface (thank-yous, context, acknowledgements).
+\section*{Goal}
 
-\addcontentsline{toc}{chapter}{Preface}
+    Explore Edge AI constrains and deployment tools through the
+    task of Real-Time Fasteners Detection on Raspberry Pi 4\&5.
+    The system must run on-device, produce stable detections
+    suitable for downstream sorting and meet latency, memory and
+    environment constraints typical for edge environments.
 
-% ======= Summary (Norwegian) and Abstract (English) =======
-% The original template includes both; we keep the format but write in English if you prefer.
-\chapter*{Summary}
-% Kort bakgrunn; hva er gjort; resultater; vurderinger.
-% If you want only English, you may leave this section brief or remove it if allowed.
-\addcontentsline{toc}{chapter}{Summary}
+\section*{Operating Context \& Constraints}
 
-\chapter*{Abstract (English)}
-% Short background; underlying theory (short/none); what is done; results; assessments.
-\addcontentsline{toc}{chapter}{Abstract (English)}
+    \begin{itemize}
+        \item Hardware: Raspberry Pi 4 (4 GB), Raspberry Pi 5 (8 GB) and Hailo-8 (26 TOPS) accelerator.
+        \item Camera: UI-3590CP-C-HQ Rev.2 - IDS uEye running up to 21 FPS with configurable exposure(e.g., 100 000 µs)
+        \item Environment: Conveyor Belt with chosen speed during inference -  2 cm/s; occasional vibration and lighting drift.
+    \end{itemize}
 
+\section*{Method}
+
+    \begin{itemize}
+        \item \textbf{Modeling}
+            \begin{itemize}
+                \item Defining the set of suitable for Edge AI models;
+                \item Exploration theirs constraints and performance;
+            \end{itemize}
+        \item \textbf{Annotation \& Dataset}
+            \begin{itemize}
+                \item Camera SDK setup and programming;
+                \item Define annotation format and tools;
+                \item Perform annotation and prepare suitable for the chosen model
+                    dataset;
+             \end{itemize}
+        \item \textbf{Training}
+            \begin{itemize}
+                \item Perform a Transfer Learning Training on a GPU;
+                \item Defining the pretrained weights based on the task
+                        and required annotation quality;
+            \end{itemize}
+        \item \textbf{Quantization \& Compilation}
+            \begin{itemize}
+                \item Configuration of a Hailo Compiler for the Hailo-8 AI
+                    Accelerator deployment;
+                \item INT8 PTQ with calibration set; Export .onnx → .har → .hef;
+            \end{itemize}
+        \item \textbf{Edge Pipeline}
+            \begin{itemize}
+                    \item Programming of the Camera Real-Time Streaming;
+                    \item Perform Real-Time Inference;
+                \item
+            \end{itemize}
+        \item \textbf{Benchmarking}
+            \begin{itemize}
+                \item CPU vs Hailo-8 AI comparison;
+                \item FPS and Detection Metrics measures;
+                \item Model Performance Comparison;
+            \end{itemize}
+    \end{itemize}
+
+    \section*{Deliverables}
+    \begin{itemize}
+        \item Annotated Dataset
+        \item Trained Weights (FP32 + INT8) and compiled \texttt{.hef} for YOLOv8 \& YOLO11 (-nano and -small)
+        \item Benchmark Report (tables, plots of accuracy, latency, FPS)
+        \item Deployment Guide (Raspberry Pi setup, uEye drivers installation guide, Hailo API configurations,
+            Calibration pack)
+    \end{itemize}
+
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+This project investigates practical Edge-AI deployment for the Real-Time fastener detection on
+Raspberry Pi 4/5, with and without Hailo-8 AI accelerator. It targets a detection on a
+conveyer belt with motion \( \approx 2 cm/s\), using an IDS uEye camera with maximum 21 FPS capability.
+A lightweight YOLO variants (v8n/v8s/v11n/v11s) are trained via transfer learning on a domain-specific
+fastener dataset. Four classes of objects are used during the training: machine screws, wood screws, nuts
+and washers. An additional fifth class is used to identify incomplete parts of the object, when neither
+a human, not a model can correctly classify an object. The dataset is prepared with the help of Roboflow framework, and it consists of 2131 augmented
+960x960 grayscale images. Models are exported to ONNX format and compiled with the Hailo toolchain
+(ONNX \(\to\) HAR \(\to\) HEF) using INT8 post-training quantization from a calibration set.  \\
+A discussion of the annotation format choices, compilation workflow and on-device inference constraints is
+provided in the literature overview section. \\
+Evaluation performed based on standard detection metrics
+(IoU, AP, mAP@0.50 and mAPP@[0.5:0.95]) and runtime
+(latency/FPS). On GPU, all tested YOLO versions archived competitive accuracy on the gathered dataset.
+While on Raspberry PI 4/5 CPU, real-time throughput is not met, Hailo accelerator shows significantly
+higher raw inference capacity, having hardware benchmarks \( \approx 142 FPS\), while Pi 5 pipeline
+delivers \( \approx 1 FPS\). However the archieved inference accuracy after
+the performed quantization is visibly lower than the pure YOLO PyTorch checkpoint inference.
+The studies on image size and NMS settings, and briefly analyzed quantization effects on small,
+fine-grained targets are reported.
+
+
+\cleardoublepage
 % ======= Table of Contents =======
 \tableofcontents
 \cleardoublepage
@@ -119,18 +192,55 @@
 % ======= Abbreviations (Brukte forkortelser) =======
 \chapter*{Abbreviations}
 \addcontentsline{toc}{chapter}{Abbreviations}
-% Only include if needed
 \begin{longtable}{@{}p{3cm}p{10cm}@{}}
-EMC & Electromagnetic Compatibility \\
-% Add more as needed...
+AI & Artificial Intelligence \\
+AABB & Axis-Aligned Bounding Box \\
+AP & Average Precision \\
+API & Application Programming Interface \\
+ARM & Arm architecture (CPU family) \\
+CCW & Counterclockwise \\
+COCO & Common Objects in Context (dataset) \\
+CPU & Central Processing Unit \\
+DL & Deep Learning \\
+ES (in OpenGL ES) & OpenGL for Embedded Systems \\
+FN & False Negative \\
+FP & False Positive \\
+FP32 & 32-bit floating point \\
+FLOPs & Floating-Point Operations \\
+FPS & Frames Per Second \\
+GFLOPs & Giga Floating-Point Operations \\
+GPU & Graphics Processing Unit \\
+HAR & Hailo Archive (intermediate model package) \\
+HEF & Hailo Executable Format (compiled binary for Hailo device) \\
+HN & Hailo Network (graph JSON inside HAR) \\
+IDS & Imaging Development Systems (uEye camera vendor) \\
+INT8 & 8-bit integer \\
+IoU & Intersection over Union \\
+L2/L3 & Level-2 / Level-3 CPU cache \\
+mAP & mean Average Precision \\
+NMS & Non-Maximum Suppression \\
+NPZ & NumPy Zip archive (weights/tensors) \\
+OBB & Oriented (Rotated) Bounding Box \\
+ONNX & Open Neural Network Exchange \\
+OpenGL ES & OpenGL for Embedded Systems \\
+PTQ & Post-Training Quantization \\
+RAM & Random Access Memory \\
+SDK & Software Development Kit \\
+SoC & System on Chip \\
+TOPS & Tera Operations Per Second \\
+TP & True Positive \\
+uEye & IDS camera/product line \\
+VStream & (Hailo) Virtual Stream (I/O stream abstraction) \\
+Vulkan & Low-level graphics/compute API \\
+
 \end{longtable}
 \cleardoublepage
-
 \cleardoublepage
 \hypersetup{pageanchor=true}
 
 % ======= 1 Introduction (Innledning) =======
 \chapter{Introduction}
+
 \section{Background of the Assignment}
 % Need, prior solutions, how this project fits into the bigger picture, what it builds upon.
 \section{Motivation}
@@ -146,7 +256,7 @@ EMC & Electromagnetic Compatibility \\
 \chapter{Literature Study}
 \noindent
 
-\section{Current state of the object detection models}
+\section{Datasets and Annonation strategies for Detection Tasks}
     Object detection models localize objects on an input picture or on a set of video frames.
     Localization can be performed by different approaches, the most relative to this work are:
     \begin{itemize}
@@ -156,7 +266,7 @@ EMC & Electromagnetic Compatibility \\
             the box is introduced,  which is a bit costlier to label.
         \item Polygon: a list of vertices tracing the object boundary. Provides precise
             geometry, however is time-consuming to label.
-        \item Pixel mask ("painted area") - most precise 2D shape, ideal for measurement
+        \item Pixel mask (\enquote{painted area}) - most precise 2D shape, ideal for measurement
             and robotics, heaviest to annotate and train on.
     \end{itemize}
 
@@ -182,156 +292,211 @@ EMC & Electromagnetic Compatibility \\
     types with a total of 2.5 million labeled instances in 328k
     images.
 
-COCO’s \cite{Lin2014COCO} official detection annotations are
-axis-aligned boxes only (bbox: [x, y, width, height]). There
-are no oriented boxes in COCO, so the standard YOLOv8/YOLO11
-\cite{Redmon2016YOLO} \textit{detect} checkpoints (trained
-on COCO 2017) learn AABB by default:
+    COCO’s \cite{Lin2014COCO} official detection annotations are
+    axis-aligned boxes only (bbox: [x, y, width, height]). There
+    are no oriented boxes in COCO, so the standard YOLOv8/YOLO11
+    \cite{Redmon2016YOLO} \textit{detect} checkpoints (trained
+    on COCO 2017) learn AABB by default:
 
-\begin{verbatim}
-{
-  "id": 1768,
-  "image_id": 397133,
-  "category_id": 1,
-  "bbox": [73.0, 43.0, 199.0, 305.0],
-  "area": 39220.0,
-  "iscrowd": 0,
-  "segmentation": [
-    [78.0, 45.0, 86.0, 45.0, 95.0, 47.0, 101.0, 51.0, ...]
-  ]
-}
-\end{verbatim}
+    \begin{verbatim}
+    {
+      "id": 1768,
+      "image_id": 397133,
+      "category_id": 1,
+      "bbox": [73.0, 43.0, 199.0, 305.0],
+      "area": 39220.0,
+      "iscrowd": 0,
+      "segmentation": [
+        [78.0, 45.0, 86.0, 45.0, 95.0, 47.0, 101.0, 51.0, ...]
+      ]
+    }
+    \end{verbatim}
 
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.3\linewidth]{pics/COCO_val2017_285.pdf}
-  \caption{Example picture from the COCO dataset with AABB annotation \cite{COCO_image_285}}
-\end{figure}
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.3\linewidth]{pics/COCO_val2017_285.pdf}
+      \caption{Example picture from the COCO dataset with AABB annotation \cite{COCO_image_285}}
+    \end{figure}
 
-For oriented bounding boxes (OBB), the DOTA dataset
-\cite{Xia2018DOTA} is the pioneering benchmark.
-Ultralytics provides YOLO \texttt{*-obb} weights pretrained
-on DOTA \cite{UltralyticsYOLO11Repo}.
+    For oriented bounding boxes (OBB), the DOTA dataset
+    \cite{Xia2018DOTA} is the pioneering benchmark.
+    Ultralytics provides YOLO \texttt{*-obb} weights pretrained
+    on DOTA \cite{UltralyticsYOLO11Repo}.
 
-Other common datasets are:
+    Other common datasets are:
 
-\begin{itemize}
-    \item Objects365 \cite{shao2019objects365} (~600k images, 365 classes):
-        broader coverage than COCO;
-        popular for pretraining backbones/heads before COCO fine-tuning.
-    \item Open Images \cite{kuznetsova2020open} (millions of images; boxes,
-        masks, relationships):
-        huge scale, but label noise is higher; great for scale, weaker for
-        cleanliness.
-\end{itemize}
+    \begin{itemize}
+        \item Objects365 \cite{shao2019objects365} (~600k images, 365 classes):
+            broader coverage than COCO;
+            popular for pretraining backbones/heads before COCO fine-tuning.
+        \item Open Images \cite{kuznetsova2020open} (millions of images; boxes,
+            masks, relationships):
+            huge scale, but label noise is higher; great for scale, weaker for
+            cleanliness.
+    \end{itemize}
 
-None of these datasets, however, include 'fasteners' as a class.
-In order to particularly train model on fasteners, a MVTec screws
-dataset \cite{ulrich2019comparison} might be used.
-This dataset has oriented-box annotations for screws/nuts
-(384 images, 4,426 OBBs). However, the labeling.
+    None of these datasets, however, include \enquote{fasteners} as a class.
+    In order to particularly train model on fasteners, a MVTec screws
+    dataset \cite{ulrich2019comparison} might be used.
+    This dataset has oriented-box annotations for screws/nuts
+    (384 images, 4,426 OBBs). However, the labeling.
 
-These are the 13 categories used in the MVTec Screws oriented-box dataset
-(category\_id $\to$ name) :
+    These are the 13 categories used in the MVTec Screws oriented-box dataset
+    (category\_id $\to$ name) :
 
-1 $\to$ long lag screw \\
-2 $\to$ lag wood screw \\
-3 $\to$ wood screw \\
-4 $\to$ short wood screw \\
-5 $\to$ shiny screw \\
-6 $\to$ black oxide screw \\
-7 $\to$ nut \\
-8 $\to$ bolt \\
-9 $\to$ large nut \\
-10 $\to$ nut \\
-11 $\to$ nut \\
-12 $\to$ machine screw \\
-13 $\to$ short machine screw \\
+    1 $\to$ long lag screw \\
+    2 $\to$ lag wood screw \\
+    3 $\to$ wood screw \\
+    4 $\to$ short wood screw \\
+    5 $\to$ shiny screw \\
+    6 $\to$ black oxide screw \\
+    7 $\to$ nut \\
+    8 $\to$ bolt \\
+    9 $\to$ large nut \\
+    10 $\to$ nut \\
+    11 $\to$ nut \\
+    12 $\to$ machine screw \\
+    13 $\to$ short machine screw \\
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.5\linewidth]{pics/screws_dataset.png}
-  \caption{Example picture from the MVTec Screws dataset with OBB annotation \cite{MVTec_Screws_2020}}
-\end{figure}
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.5\linewidth]{pics/screws_dataset.png}
+      \caption{Example picture from the MVTec Screws dataset with OBB annotation \cite{MVTec_Screws_2020}}
+    \end{figure}
 
-It is also possible to convert OBB annotation to AABB annotation with some
-loss of information. In order to do so:
+    It is also possible to convert OBB annotation to AABB annotation with some
+    loss of information. In order to do so:
 
-Let $w,h$ be side lengths and $\theta$ the rotation (radians, CCW). The tight
-axis-aligned box around the rotated rectangle has
-\begin{align}
-W_{\text{AABB}} &= \lvert\cos\theta\rvert\, w + \lvert\sin\theta\rvert\, h, \\
-H_{\text{AABB}} &= \lvert\sin\theta\rvert\, w + \lvert\cos\theta\rvert\, h .
-\end{align}
-With the same center $(c_x,c_y)$,
-\begin{align}
-x_{\min} &= c_x - \frac{W_{\text{AABB}}}{2}, &
-x_{\max} &= c_x + \frac{W_{\text{AABB}}}{2}, \\
-y_{\min} &= c_y - \frac{H_{\text{AABB}}}{2}, &
-y_{\max} &= c_y + \frac{H_{\text{AABB}}}{2}.
-\end{align}
+    Let $w,h$ be side lengths and $\theta$ the rotation (radians, CCW). The tight
+    axis-aligned box around the rotated rectangle has
+    \begin{align}
+    W_{\text{AABB}} &= \lvert\cos\theta\rvert\, w + \lvert\sin\theta\rvert\, h, \\
+    H_{\text{AABB}} &= \lvert\sin\theta\rvert\, w + \lvert\cos\theta\rvert\, h .
+    \end{align}
+    With the same center $(c_x,c_y)$,
+    \begin{align}
+    x_{\min} &= c_x - \frac{W_{\text{AABB}}}{2}, &
+    x_{\max} &= c_x + \frac{W_{\text{AABB}}}{2}, \\
+    y_{\min} &= c_y - \frac{H_{\text{AABB}}}{2}, &
+    y_{\max} &= c_y + \frac{H_{\text{AABB}}}{2}.
+    \end{align}
 
-If the oriented box is given by four corners $(x_i,y_i)$, the enclosing AABB is
-\begin{align}
-x_{\min}=\min_i x_i,\quad x_{\max}=\max_i x_i,\qquad
-y_{\min}=\min_i y_i,\quad y_{\max}=\max_i y_i .
-\end{align}
+    If the oriented box is given by four corners $(x_i,y_i)$, the enclosing AABB is
+    \begin{align}
+    x_{\min}=\min_i x_i,\quad x_{\max}=\max_i x_i,\qquad
+    y_{\min}=\min_i y_i,\quad y_{\max}=\max_i y_i .
+    \end{align}
 
-\textbf{COCO bbox} uses $[x_{\min},\,y_{\min},\,\text{width},\,\text{height}]$, then: \\
-\begin{align}
-\text{bbox}_{\text{COCO}}
-= \bigl[\, x_{\min},\; y_{\min},\; x_{\max}-x_{\min},\; y_{\max}-y_{\min} \,\bigr].
-\end{align}
+    \textbf{COCO bbox} uses $[x_{\min},\,y_{\min},\,\text{width},\,\text{height}]$, then: \\
+    \begin{align}
+    \text{bbox}_{\text{COCO}}
+    = \bigl[\, x_{\min},\; y_{\min},\; x_{\max}-x_{\min},\; y_{\max}-y_{\min} \,\bigr].
+    \end{align}
 
-\textbf{YOLO txt} uses normalized $(x_\text{center},y_\text{center},w,h)$, then: \\
-Given image size $(W_{\text{img}},H_{\text{img}})$,
-\begin{align}
-x_\text{center} &= \frac{x_{\min}+x_{\max}}{2\,W_{\text{img}}}, &
-y_\text{center} &= \frac{y_{\min}+y_{\max}}{2\,H_{\text{img}}}, \\
-w               &= \frac{x_{\max}-x_{\min}}{W_{\text{img}}}, &
-h               &= \frac{y_{\max}-y_{\min}}{H_{\text{img}}}.
-\end{align}
+    \textbf{YOLO txt} uses normalized $(x_\text{center},y_\text{center},w,h)$, then: \\
+    Given image size $(W_{\text{img}},H_{\text{img}})$,
+    \begin{align}
+    x_\text{center} &= \frac{x_{\min}+x_{\max}}{2\,W_{\text{img}}}, &
+    y_\text{center} &= \frac{y_{\min}+y_{\max}}{2\,H_{\text{img}}}, \\
+    w               &= \frac{x_{\max}-x_{\min}}{W_{\text{img}}}, &
+    h               &= \frac{y_{\max}-y_{\min}}{H_{\text{img}}}.
+    \end{align}
 
 
 \section{The model choice}
-For Edge AI, the trade-off between computational speed and
-memory availability is critical. A model must not only deliver
-sufficiently high accuracy but also remain compact enough to fit
-onto resource-constrained devices such as microcontrollers.
 
-Among the most popular development platforms is the Raspberry Pi
-family, which offers a flexible setting for deploying
-lightweight AI systems.
-Raspberry Pi 5 used for this work includes:
+    For Edge AI, the trade-off between computational speed and
+    memory availability is critical. A model must not only deliver
+    sufficiently high accuracy but also remain compact enough to fit
+    onto resource-constrained devices such as microcontrollers.
 
-\begin{tabular}{@{}p{0.34\linewidth}p{0.63\linewidth}@{}}
-    \multicolumn{2}{l}{\textbf{Compute}}\\
+    YOLO models family provides SOTA lightweight models and shows good results
+    for both - the prediction accuracy and inference speed.
+
+
+    \begin{table*}[t]
+    \centering
+    \caption{Summary of YOLO releases \cite{khanam2024yolov11}}
+    \label{tab:yolo-timeline}
+    \renewcommand{\arraystretch}{1.15}
+    \begin{tabularx}{\textwidth}{@{} l c X X l @{}}
+    \toprule
+    \textbf{Release} & \textbf{Year} & \textbf{Tasks} & \textbf{Contributions} & \textbf{Framework} \\
     \midrule
-    SoC & 2.4\,GHz quad-core 64-bit Arm Cortex-A76 (crypto ext.); \\
-        & 512\,KB L2 per core, \\
-        & 2\,MB shared L3 \\
-    GPU & VideoCore VII; OpenGL ES 3.1, Vulkan 1.3 \\
+    YOLO {[5]}     & 2015 & Object Detection, Basic Classification
+                   & Single-stage object detector
+                   & Darknet \\
+    YOLOv2 {[7]}   & 2016 & Object Detection, Improved Classification
+                   & Multi-scale training, dimension clustering
+                   & Darknet \\
+    YOLOv3 {[8]}   & 2018 & Object Detection, Multi-scale Detection
+                   & SPP block, Darknet-53 backbone
+                   & Darknet \\
+    YOLOv4 {[9]}   & 2020 & Object Detection, Basic Object Tracking
+                   & Mish activation, CSPDarknet-53 backbone
+                   & Darknet \\
+    YOLOv5 {[10]}  & 2020 & Object Detection, Basic Instance Segmentation (via custom modifications)
+                   & Anchor-free detection, SWISH activation, PANet
+                   & PyTorch \\
+    YOLOv6 {[11]}  & 2022 & Object Detection, Instance Segmentation
+                   & Self-attention, anchor-free OD
+                   & PyTorch \\
+    YOLOv7 {[12]}  & 2022 & Object Detection, Object Tracking, Instance Segmentation
+                   & Transformers, E-ELAN reparameterisation
+                   & PyTorch \\
+    YOLOv8 {[13]}  & 2023 & Object Detection, Instance Segmentation, Panoptic Segmentation, Keypoint Estimation
+                   & GANs, anchor-free detection
+                   & PyTorch \\
+    YOLOv9 {[14]}  & 2024 & Object Detection, Instance Segmentation
+                   & PGI and GELAN
+                   & PyTorch \\
+    YOLOv10 {[15]} & 2024 & Object Detection
+                   & Consistent dual assignments for NMS-free training
+                   & PyTorch \\
+    YOLOv11 {[16]} & 2024 & Object Detection; (variants for) Instance Segmentation, Pose, OBB
+               & Updated training pipeline and architectures; better accuracy–speed trade-offs; streamlined exports (ONNX/TensorRT) in Ultralytics
+               & PyTorch \\
+    \bottomrule
+    \end{tabularx}
+    \end{table*}
 
-    \multicolumn{2}{l}{\textbf{Memory and Storage}}\\
-    \midrule
-    RAM &  8\, GB \\
-    microSD & 64\, GB \\
-    \midrule
-  \end{tabular}
 
-    An additional hardware used during the experiment is a Hailo-8
-    accelerator offering 26 TOPS inferencing performance
-    respectively.
 
-    However, the YOLOv8 and YOLOv11 are both provided by Ultralitics
+\section{Hardware}
+
+    Among the most popular development platforms is the Raspberry Pi
+    family, which offers a flexible setting for deploying
+    lightweight AI systems.
+    Raspberry Pi 5 used for this work includes:
+
+    \begin{tabular}{@{}p{0.34\linewidth}p{0.63\linewidth}@{}}
+        \multicolumn{2}{l}{\textbf{Compute}}\\
+        \midrule
+        SoC & 2.4\,GHz quad-core 64-bit Arm Cortex-A76 (crypto ext.); \\
+            & 512\,KB L2 per core, \\
+            & 2\,MB shared L3 \\
+        GPU & VideoCore VII; OpenGL ES 3.1, Vulkan 1.3 \\
+
+        \multicolumn{2}{l}{\textbf{Memory and Storage}}\\
+        \midrule
+        RAM &  8\, GB \\
+        microSD & 64\, GB \\
+        \midrule
+      \end{tabular}
+
+        An additional hardware used during the experiment is a Hailo-8
+        accelerator offering 26 TOPS inferencing performance
+        respectively.
+
+    However, the YOLOv8 and YOLOv11 are both provided by \textit{Ultralytics}
     as a PyTorch checkout. In order to use it on accelerator, this checkout has
     to be converted to a suitable format by Hailo Compiler.
 
 
 \section{Hailo Compiler}
 
-    Hailo compiler is needed to load user's models to the Hailo devices.
+    Hailo compiler \cite{hailo_manual} is needed to load user's models to the Hailo devices.
     The final result of the compiler is a binary file \texttt{.hef}.
     The standard DataFlow for this conversion consists of the three main steps:
 
@@ -356,7 +521,7 @@ Raspberry Pi 5 used for this work includes:
     \begin{itemize}
         \item HAR is a zip package that contains:
         \begin{itemize}
-            \item HN— 'Hailo Network': a JSON graph of the network (layers,
+            \item HN— \enquote{Hailo Network}: a JSON graph of the network (layers,
                 tensor shapes/dtypes, connections, metadata).
             \item NPZ—NumPy arrays with the floating-point weights(and sometimes
                 other tensors like batch normalization params).
@@ -367,6 +532,87 @@ Raspberry Pi 5 used for this work includes:
     possible checkpoint configurations (used operation and attributes names, FP32 weights),
     and the optimizer has a clean input.
 
+    The second step is model optimization. The key part of the optmization is the conversion
+    of the model from FP32 to INT8. It is done with an additional run of calibrarion module.
+
+    There exist different ways to quantize a model. To my knowledge, Hailo Compiler is using
+    the Linear Quantization:
+
+    Key benefits from this approach is its efficiency, support by major DL frameworks and easy
+    implementation \cite{Han_6.5940_2024}. However, the drawback is a visible precision loss as many nearby
+    floating-point values collapse to the same quantized level. Layers with large
+    dynamic range (e.g., softmax) are more sensitive to this method.
+
+    Assume an input floating-point value, the linear quantization is
+    \[
+      q = \operatorname{round}\!\left( Z + \frac{r}{S} \right).
+    \]
+    \paragraph{Where}
+    \begin{itemize}
+      \item $r$: original 32-bit floating-point number
+      \item $q$: quantized representation (integer)
+      \item $S$: scale factor (step size)
+      \item $Z$: zero point (integer), which allows $r=0$ to be represented exactly by the integer $Z$
+    \end{itemize}
+
+    Dequantization is defined by the formula:
+    \[
+      r \approx (q - Z)\,S.
+    \]
+
+    It is also illustrated at the Figure \ref{fig:quantization}
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.7\linewidth]{pics/out_quant/quantization.pdf}
+      \caption{Build Process \cite{Han_6.5940_2024}}
+      \label{fig:quantization}
+    \end{figure}
+
+    In order to perform this optimization, the calibration set of raw, unlabeled samples is gathered.
+    It should match a real input distribution (color space, normalization). The compiler uses this
+    set to run a neural network on it and logs per-tensor activation distributions. So, it records
+    min/max values and percentiles. By doing so, an optimizer gets $r_{min}$ and $r_{max}$ values.
+    Which are used to compute $q_{min}$, $q_{max}$ and $Z$ - point (see Figure \ref{fig:quantization}).
+    It is important to do it per tensor as different layers produce values with very different
+    ranges/outliers. Choosing ranges from their actual distributions minimizes quantization error.
+
+
+    The last step is a compilation itself, which the model is compiled to a binary file \texttt{.hef}.
+    The compiler is responsible for allocation hardware resources, so the highest possible FPS can be
+    archived. It performs it by mapping neural network layers onto the hardware \cite{rptu_eml_ch12_2025} (compute elements,
+    memory elements, and control elements) and schedule their execution under the chip's resource
+    constraints. If the network is too large, the compiler will partition the network into several
+    contexts, allowing bigger models still run with some performance overhead.
+    The compiler might tile large tensors, split layers into smaller pieces
+    to fit into memory and to utilize parallelizm. Key strategy of this hardware mapping is to perform
+    as many computation as possible (possibly for difference layers) on the kept on the chip memory
+    tensors. As part of scheduling, compiler also defines the data flow from layer to layer, chaining
+    producers and consumers layer clusters. For example, while the layer i is computed on one side of the
+    chip, another part of the chip might start executing layer i+1 (Illusration: \ref{fig:conv_reuse}).
+    This schedule is constructed during the
+    compilation step. Apart from the execution plan, compiler also performs on-chip Non-Maximum
+    Suppression (NMS) fusion for models like YOLO. NMS algorithm performs deduplication of several
+    predicted for the same object boxes. For instance, the screw could be with different probabilities be
+    predicted both as machine and wood screw. So, the post-processing NMS is performed to keep only the most
+    suitable box. Hailo's compiler can inregrate NMS as the final layer of the network, so it runs on the
+    hailo itself and not on the CPU after the inference. It improves the performance not only due to localization
+    of computation, but also due to reduced data transfer - only filtered detections are sent to the
+    Raspberry Pi.
+
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.7\linewidth]{pics/conv_reuse.pdf}
+      \caption{Example of the layers reuse: convolutional reuse (Inspired by \cite{emer_sze_chen_2019_dnn_accel_tutorial})}
+      \label{fig:conv_reuse}
+    \end{figure}
+
+    The final Hailo Executable File contains:
+    \begin{itemize}
+        \item Low-level program for the target device (layer schedule, the memory buffer addresses/sizes,
+            instruction sequences etc.)
+        \item Weights and biases
+        \item Metadata and calibration information
+    \end{itemize}
 
 
 \section{ONNX (Open Neural Network Exchange)}
@@ -374,6 +620,9 @@ Raspberry Pi 5 used for this work includes:
 ONNX is an open format developed to unify ML models for a variety of
 frameworks and compilers by defining a common set of operators and
 represent models via graph structure.
+
+
+
 
 % Summarize, cite, and analyze.
 \section{Summary of the Literature Study}
