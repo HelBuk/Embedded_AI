@@ -411,16 +411,18 @@ Vulkan & Low-level graphics/compute API \\
     sufficiently high accuracy, but also remain compact to fit
     onto resource-constrained devices such as microcontrollers.
 
-    YOLO models family \ref{tab:yolo-timeline} has SOTA lightweight versions
-    of model small and efficient enough to be used on Edge-devices.
-    They show good results for both - the prediction accuracy and inference speed.
+    YOLO models family \ref{tab:yolo-timeline} presents state-of-the-art
+    lightweight versions of model small and efficient enough to be used
+    on Edge-devices. They show good results for both - the prediction
+    accuracy and inference speed.
 
     Before YOLO \cite{Redmon2016YOLO} the most common detection approaches used
     two-stage pipelines. The first stage was responsible for generation of
     the box, the other one for classification. It allowed to archive high
     accuracy, but kept these models slow. The YOLO series introduced a single-one
     stage detector - a single convolutional model predicts bounding boxes and
-    class probabilities in one pass over the image.
+    class probabilities in one pass over the image. It speed up the inference and
+    allowed YOLO to compete among Real-Time Inference models.
 
 
     \begin{table}[t]
@@ -452,6 +454,63 @@ Vulkan & Low-level graphics/compute API \\
     \cite{Redmon2016YOLO}}
     \end{table}
 
+    Among 11 versions of YOLO models (see Table \cite{khanam2024yolov11}),
+    the most important ones are v5, v8, v10 and v11.
+    In some sense, v5, introduced by Ultralytics team, created a foundation
+    for other versions. It came out in PyTorch implementation, which made it easy
+    to deploy, it had multiple sizes (s, m, l, x), so was is easy
+    to adjust to the specific task and constraints. It also became possible to
+    export model to formats for mobile deployment (as ONNX).
+    Version 8 \ref{fig:yolov8_pair} focused more on improving model performance and flexibility.
+    Ultralytics improved the backbone. The model adopted anchor-free detection:
+    it predicts box coordinates and class probabilities without predefined
+    anchor boxes. It simplified the training process and improved
+    its generalization. Version 11 released in 2024 by a Tsinghua University group
+    introduced an important strategy for the box deduplication. Normally YOLO
+    models need an NMS post-process algorithm to remove duplicate detections
+    of the same object, but version 10 presented NMS-free detection. It uses a
+    dual-label assignment during the training process, so the model predicts only
+    one high-confidence box per object. In version 10 large-kernel convolutions and
+    partial self-attention also were introduced to increase the receptive field
+    without heavy computations. The results were impressive. Yolov10-s model reported
+    1.8 times faster inference compared to its competitor - RT-DETR model with similar AP,
+    while having 2.8 times fewer parameters (see Table \ref{tab:yolov10_main}).
+
+    \begin{table}[t]
+      \centering
+      \caption{Comparisons of RT-DETR versus YOLOv8 and YOLOv10 models.
+               Latency$^{f}$ denotes the latency of the forward pass
+               without post-processing.}
+      \label{tab:yolov10_main}
+      \resizebox{\textwidth}{!}{%
+        \begin{tabular}{lccccc}
+          \toprule
+          \textbf{Model} & \textbf{\#Param.(M)} & \textbf{FLOPs(G)} &
+          \textbf{AP$^{val}$ (\%)} & \textbf{Latency (ms)} & \textbf{Latency$^{f}$ (ms)} \\
+          \midrule
+          YOLOv8-N \cite{UltralyticsYOLOv8}     & 3.2  &  8.7 & 37.3              & 6.16 & 1.77 \\
+          \textbf{YOLOv10-N} \cite{wang2024yolov10} &
+          \textbf{2.3} & \textbf{6.7} &
+          \textbf{38.5/39.5$^{\dagger}$} &
+          \textbf{1.84} & \textbf{1.79} \\
+          \midrule
+          YOLOv8-S \cite{UltralyticsYOLOv8}  & 11.2 & 28.6 & 44.9  & 7.07 & 2.33 \\
+          RT-DETR-R18 \cite{lv2023rtdetr}    & 20.0 & 60.0 & 46.5  & 4.58 & 4.49 \\
+          \textbf{YOLOv10-S} \cite{wang2024yolov10} &
+          \textbf{7.2} & \textbf{21.6} &
+          \textbf{46.3/46.8$^{\dagger}$} &
+          \textbf{2.49} & \textbf{2.39} \\
+          \bottomrule
+        \end{tabular}%
+      }
+    \end{table}
+
+    The last published version - YOLO11 - didn't introduce significant
+    changes in the architecture structure and is mostly based on YOLOv8 design.
+    For example, it still used NMS to remove duplicated boxes. Authors
+    were focused on optimising the network and achieving higher accuracy per
+    parameter. It jumps in accuracy and efficiency over YOLOv8 and shows higher
+    mAp with fewer parameters.
 
     \begin{figure}[!htbp]
       \centering
@@ -516,6 +575,23 @@ Vulkan & Low-level graphics/compute API \\
     \bottomrule
     \end{tabularx}
     \end{table*}
+
+    There also exist some other successful approaches in real-time detection. One
+    of the earlier mentioned models - RT-DETR - uses a Transformer-based
+    architecture. By using transformer decoder, it removes NMS entirely,
+    as was done in YOLOv10 too. It allows RT-DETR model performs excellent on GPU
+    by efficiently utilizing transformers parallelization. However, YOLO models
+    still remain more parameter-efficient and faster on low-power device or CPUs.
+    The other well suitable for the Edge detection model is NanoDet. It targets
+    fast CPU inference and deployment on edge devices. It can be as small as 0.95
+    million parameters, which is smaller than YOLOv8n and Yolov11n models.
+    Authours report a quantized INT8 NanoDet model having approximately 97 FPS on
+    a mobile CPU. In spite of the speed, the model is notably less accurate, having
+    34\% mAP with YOLOv8n having $37\%$ and YOLOv11n - $39.5\%$.
+
+    \textbf{Summary of comparison:} For edge hardware with limited or no GPU, YOLOv11-n or NanoDet would be preferred
+    due to their small size (with YOLO offering higher accuracy at a bit
+    larger size). With a GPU or NPU, YOLOv11-s or even RT-DETR can be considered.
 
 
 
@@ -678,44 +754,12 @@ frameworks and compilers by defining a common set of operators and
 represent models via graph structure.
 
 
-
-
-% Summarize, cite, and analyze.
 \section{Summary of the Literature Study}
-% Synthesize key takeaways, gaps, and implications for your work.
 
-% ======= 3 Theory (Teori) [only if needed] =======
-\chapter{Theory (Optional)}
-% Include only if your work needs a dedicated theory chapter.
-\section{Subtopic Example}
-% Core definitions, models, or math used later.
 
-% ======= 4 Proposed Solution / Design (Vårt forslag til løsning / design) =======
-\chapter{Proposed Solution / Design}
-\noindent
-% Short intro
-\section{Functional Specification}
-% Based on Task Description and Literature Study, specify what the system should do (externally),
-% and I/O specs; this will be referenced in the Discussion chapter.
-
-\section{Architecture / Design Details}
-% Modules, interfaces, diagrams, constraints, trade-offs.
-
-% ======= 5 Implementation (Vår implementering) =======
-\chapter{Implementation}
-\noindent
-% Short intro
-\section{Key Implementation Details}
-% Technologies, algorithms, data structures, configurations, noteworthy engineering decisions.
-
-% ======= 6 Testing / Results (Vår uttesting / Resultater) =======
-\chapter{Testing and Results}
-\noindent
-% Short intro
-\section{Experimental Setup}
-% Test bench, datasets, hardware, software versions, parameters.
-\section{Results}
-
+% ======= Theory =======
+\chapter{Theory}
+\section*{Metrics description}
 \textbf{Metrics description}:
 
 \begin{itemize}[leftmargin=1.5em]
@@ -790,6 +834,32 @@ represent models via graph structure.
         with \(\mathrm{IoU}\ge 0.5\) are counted as true positives (TP). \\
 
 \end{itemize}
+
+% ======= 4 Proposed Solution / Design (Vårt forslag til løsning / design) =======
+\chapter{Proposed Solution / Design}
+\noindent
+% Short intro
+\section{Functional Specification}
+% Based on Task Description and Literature Study, specify what the system should do (externally),
+% and I/O specs; this will be referenced in the Discussion chapter.
+
+\section{Architecture / Design Details}
+% Modules, interfaces, diagrams, constraints, trade-offs.
+
+% ======= 5 Implementation (Vår implementering) =======
+\chapter{Implementation}
+\noindent
+% Short intro
+\section{Key Implementation Details}
+% Technologies, algorithms, data structures, configurations, noteworthy engineering decisions.
+
+% ======= 6 Testing / Results (Vår uttesting / Resultater) =======
+\chapter{Testing and Results}
+\noindent
+% Short intro
+\section{Experimental Setup}
+% Test bench, datasets, hardware, software versions, parameters.
+\section{Results}
 \begin{table}[!t]
 \centering
 \caption{Validation summaries.}
@@ -983,7 +1053,7 @@ YOLO11s & 9.4  & 21.5 & 47.0 \\
 % Causes of deviations? What could be done differently? What should be added?
 % This leads into Future Work.
 \section{Discussion Points}
-% Organize by theme (performance, robustness, cost, etc.)
+% by theme (performance, robustness, cost, etc.)
 
 % ======= 8 Conclusion (Konklusjon) =======
 \chapter{Conclusion}
