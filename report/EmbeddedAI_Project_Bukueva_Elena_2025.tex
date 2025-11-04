@@ -839,9 +839,71 @@ represent models via graph structure.
 \chapter{Proposed Solution / Design}
 \noindent
 % Short intro
-\section{Functional Specification}
-% Based on Task Description and Literature Study, specify what the system should do (externally),
-% and I/O specs; this will be referenced in the Discussion chapter.
+\section{Dataset and Annotation }
+
+The dataset consists of 2131 images (see Fig. \ref{fig:roboflow_ex}), which are split into 1983 images for the training,
+98 images for the validation and 50 images for the test. Images have a 960x960 size
+and are grayscale.
+
+The augmentation includes:
+
+    \begin{itemize}
+        \item Outputs per training example: 3
+        \item Flip: Horizontal, Vertical
+        \item $90^\circ$ Rotate: Clockwise, Counter-Clockwise, Upside Down
+        \item Hue: Between $-24^\circ$ and $+24^\circ$
+        \item Saturation: Between -25\% and +25\%
+        \item Brightness: Between -22\% and +22\%
+        \item Exposure: Between -10\% and +10\%
+        \item Blur: Up to 2.5px
+       \item  Noise: Up to 1.72\% of pixels
+    \end{itemize}
+
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.7\linewidth]{pics/roboflow_annotation_example.png}
+      \caption{Roboflow Annotation Illustration}
+      \label{fig:roboflow_ex}
+    \end{figure}
+
+
+Annotation was performed with the use of the Roboflow Framework \cite{roboflow_framework}.
+It is a platform for computer vision datasets and models. It provides an API for image upload,
+fast conversion between formats (e.g., YOLO, COCO), in-browser annotation and labeling for bounding
+boxes, segmentation and classification tasks.
+
+The link to the dataset placed at the Roboflow platform is available
+in the reference section \cite{embeddedaiproject-id4jh_dataset}
+
+\section{Camera Setup}
+
+    The camera used in the project is IDS uEye UI-3590CP-C-HQ Rev.2.
+    It is an industrial machine-vision camera from USB3 uEye Cp series.
+    IDS provides a uEye SDK, though which the control of streaming, configuration,
+    exposure/gain, etc. is happening.
+
+    The parameters logged while to capturing frames for the further annotation:
+        \begin{itemize}
+            \item "fps": 7.0,
+            \item "exposure_ms": 80,
+            \item "width": 4912,
+            \item "height": 3684,
+            \item "color": true,
+            \item "frames": 70,
+            \item "frames_saved": 70,
+            \item "gain_percent": 10,
+            \item "gamma_100": 130,
+      \end{itemize}
+
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.4\linewidth]{pics/camera.png}
+      \caption{The picture of the camera is taken from the IDS manual \cite{ids_ui3590cp_ab00606}}
+      \label{fig:roboflow_ex}
+    \end{figure}
+
+
+
 
 \section{Architecture / Design Details}
 % Modules, interfaces, diagrams, constraints, trade-offs.
