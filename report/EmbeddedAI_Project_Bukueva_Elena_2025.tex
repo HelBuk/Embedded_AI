@@ -924,11 +924,11 @@ in the reference section \cite{embeddedaiproject-id4jh_dataset}
     \end{description}
 
 
-
-% ======= 5 Implementation (Vår implementering) =======
-\chapter{Implementation}
+% ======= 6 Testing / Results (Vår uttesting / Resultater) =======
+\chapter{Testing and Results}
 \noindent
-\section{Key Implementation Details}
+% Short intro
+\section{Experimental Setup}
 
 We trained 7 models (Yolo v8, v10, v11 -n/-s and RT-DETR-R18) to provide
 an overview of their performance in terms of accuracy and speed. For the training
@@ -940,13 +940,120 @@ for the on-device speed benchmarking and demo detection streaming.
 Then, models were compiled to the \texttt{.hef} format, so they could be run on a
 Hailo-8 AI accelerator with 26 TOPS.
 
-% ======= 6 Testing / Results (Vår uttesting / Resultater) =======
-\chapter{Testing and Results}
-\noindent
-% Short intro
-\section{Experimental Setup}
-% Test bench, datasets, hardware, software versions, parameters.
 \section{Results}
+
+
+Table~\ref{tab:yolo11n_resolution} compares YOLO11n evaluated on the screw test set
+at two input resolutions, $640\times640$ and $960\times960$. Overall, the model achieves
+very similar performance at both scales: the mAP$_{50\text{--}95}$
+stays mostly unchanged (0.737 vs.\ 0.740), while precision and recall slightly
+improve at $960\times960$ (from 0.930/0.922 to 0.938/0.963). For most classes,
+mAP$_{50}$ and mAP$_{50\text{--}95}$ either increase
+(e.g.\ \textit{nut} and \textit{wood\_screw}) or stay almost identical (\textit{washer}). The \textit{miscellaneous} class remains the most challenging: recall benefits from the higher resolution (0.687 to 0.846), but its mAP$_{50\text{--}95}$ slightly decreases (0.522 to 0.516), indicating that additional detections are partly offset by noisier localization or extra false positives.
+
+The normalized confusion matrices in Fig.~\ref{fig:yolov11n_cm_compare} provide
+a qualitative view of these effects. At $640\times640$
+(Fig.~\ref{fig:yolov11n_cm_640}), most probability mass already lies on the diagonal,
+with occasional confusion between \textit{machine\_screw} and \textit{miscellaneous},
+and between \textit{wood\_screw} and the background. At $960\times960$
+(Fig.~\ref{fig:yolov11n_cm_960}), the diagonal entries for \textit{machine\_screw},
+\textit{nut}, \textit{washer}, and \textit{wood\_screw} become slightly stronger,
+reflecting the small gains reported in Table~\ref{tab:yolo11n_resolution}. However, the
+\textit{miscellaneous} class continues to exhibit the largest off-diagonal mass,
+confirming that it is the dominant source of residual confusion.
+
+Finally, the validation log at $960\times960$ reports an average CPU inference
+time of 124.8\,ms per image (with 4.2\,ms for preprocessing and 0.5\,ms
+for postprocessing), i.e.\ roughly 8\,FPS. Given the marginal accuracy gains
+compared to $640\times640$, this highlights a clear resolution - speed trade-off:
+higher input resolution yields slightly more stable detections on most classes,
+but at a significant computational cost on the target hardware.
+
+\begin{table}[t]
+    \centering
+    \caption{YOLO11n test performance on the screw dataset for two input resolutions.}
+    \label{tab:yolo11n_resolution}
+    \begin{tabular}{lcccccccc}
+        \toprule
+        & \multicolumn{4}{c}{640$\times$640} & \multicolumn{4}{c}{960$\times$960} \\
+        \cmidrule(lr){2-5}\cmidrule(lr){6-9}
+        Class & P & R & mAP$_{50}$ & mAP$_{50\text{--}95}$ & P & R & mAP$_{50}$ & mAP$_{50\text{--}95}$ \\
+        \midrule
+        all             & 0.930 & 0.922 & 0.944 & 0.737 & 0.938 & 0.963 & 0.952 & 0.740 \\
+        machine\_screw  & 0.954 & 0.938 & 0.988 & 0.709 & 0.965 & 0.969 & 0.990 & 0.711 \\
+        miscellaneous   & 0.899 & 0.687 & 0.775 & 0.522 & 0.916 & 0.846 & 0.789 & 0.516 \\
+        nut             & 0.922 & 1.000 & 0.988 & 0.765 & 0.971 & 1.000 & 0.995 & 0.787 \\
+        washer          & 0.942 & 1.000 & 0.995 & 0.895 & 0.917 & 1.000 & 0.995 & 0.894 \\
+        wood\_screw     & 0.931 & 0.985 & 0.973 & 0.791 & 0.921 & 1.000 & 0.991 & 0.793 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[t]
+    \centering
+    \begin{subfigure}[b]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{pics/yolov11n_confusion_matrix_640.png}
+        \caption{YOLO11n confusion matrix at $640\times640$.}
+        \label{fig:yolov11n_cm_640}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{pics/yolov11n_confusion_matrix_960.png}
+        \caption{YOLO11n confusion matrix at $960\times960$.}
+        \label{fig:yolov11n_cm_960}
+    \end{subfigure}
+    \caption{Comparison of YOLO11n confusion matrices at two input resolutions (Server CPU)}
+    \label{fig:yolov11n_cm_compare}
+\end{figure}
+
+\subsection{Runtime analysis at 640$\times$640}
+
+Figure~\ref{fig:detectors_640} summarizes the runtime characteristics of all evaluated detectors
+on the screw test video at $640\times640$ input resolution on CPU. For all models, the preprocessing
+and postprocessing stages are relatively cheap, staying around 2\,ms and below 0.5\,ms per frame
+respectively; the total latency is therefore dominated by the inference time.
+
+Among the YOLO variants, the nano models (YOLOv8n, YOLOv10n, YOLOv11n) achieve total runtimes between
+31.4\,ms and 34.3\,ms per frame, corresponding to roughly 30\,FPS. Despite small differences
+in parameter count and GFLOPs, their inference times are very similar, with YOLOv8n being slightly
+faster and YOLOv10n/YOLOv11n incurring a modest overhead. The small models
+(YOLOv8s, YOLOv10s, YOLOv11s) roughly double the parameter count and GFLOPs compared to their nano counterparts, which is reflected in a near-doubling of the inference time (about 62–64\,ms) and a reduction to approximately 15\,FPS.
+
+RT-DETR-R18 exhibits a markedly different runtime profile. With 21.9\,M parameters and an estimated
+60\,GFLOPs, its inference time of 148.3\,ms leads to a total latency of 150.4\,ms per frame,
+i.e.\ about 6–7\,FPS on the same CPU. While preprocessing and postprocessing remain comparable
+to the YOLO models, the transformer-based backbone and head are substantially more expensive
+than the convolutional YOLO architectures. Overall, the table highlights a clear trade-off between
+model complexity and real-time performance, with the nano YOLO variants best suited
+for latency-constrained deployments on CPU.
+
+    \begin{figure}[H]
+      \centering
+      \begin{subfigure}[b]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{pics/detectors_640_parameters.pdf}
+        \caption{Inference time vs.\ number of parameters.}
+        \label{fig:detectors_640_params}
+      \end{subfigure}
+      \hfill
+      \begin{subfigure}[b]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{pics/detectors_640_gflops.pdf}
+        \caption{Inference time vs.\ GFLOPs.}
+        \label{fig:detectors_640_gflops}
+      \end{subfigure}
+      \caption{Comparison of trained models in terms of inference time, model size, and computational cost at $640\times640$ input resolution.}
+      \label{fig:detectors_640_combined}
+    \end{figure}
+
+
+
+
+
+
+
 \begin{table}[!t]
 \centering
 \caption{Validation summaries.}
@@ -1024,48 +1131,10 @@ Hailo-8 AI accelerator with 26 TOPS.
 
 \end{table}
 
-\begin{table}[tb]
-\centering
-\caption{YOLO \textit{nano} (n) variants on COCO at 640$\times$640.}
-\label{tab:yolo_n_variants}
-\begin{tabular}{lccc}
-\hline
-Model & Params (M) & FLOPs (B) & mAP$_{50\text{--}95}$ (val) \\
-\hline
-YOLOv5n & 1.9 & 4.5  & 28.0 \\
-YOLOv8n & 3.2 & 8.7  & 37.3 \\
-YOLO11n & 2.6 & 6.5  & 39.5 \\
-\hline
-\end{tabular}
-
-\medskip
-\footnotesize{Numbers from Ultralytics model cards: v5 \cite{UltralyticsYOLOv5}, v8 \cite{UltralyticsYOLOv8}, v11 \cite{UltralyticsYOLO11Repo}.}
-\end{table}
-
-% --- YOLO s-variants (COCO, 640x640) ---
-\begin{table}[tb]
-\centering
-\caption{YOLO \textit{small} (s) variants on COCO at 640$\times$640.}
-\label{tab:yolo_s_variants}
-\begin{tabular}{lccc}
-\hline
-Model & Params (M) & FLOPs (B) & mAP$_{50\text{--}95}$ (val) \\
-\hline
-YOLOv5s & 7.2  & 16.5 & 37.4 \\
-YOLOv8s & 11.2 & 28.6 & 44.9 \\
-YOLO11s & 9.4  & 21.5 & 47.0 \\
-\hline
-\end{tabular}
-
-\medskip
-\footnotesize{Numbers from Ultralytics model cards: v5 \cite{UltralyticsYOLOv5}, v8 \cite{UltralyticsYOLOv8}, v11 \cite{UltralyticsYOLO11Repo}.}
-\end{table}
-
-
 
 \begin{table}[tb]
   \centering
-  \caption{Hailo benchmark results for \texttt{yolov8\_custom}.}
+  \caption{Hailo benchmark results for \texttt{yolov8n}.}
   \label{tab:hailo-bench}
   \begin{tabular}{lll}
     \toprule
@@ -1081,33 +1150,38 @@ YOLO11s & 9.4  & 21.5 & 47.0 \\
 
 \begin{table}[tb]
   \centering
-  \caption{HEF metadata (\texttt{yolov8\_custom.hef}).}
+  \caption{HEF metadata (\texttt{yolov8n.hef}).}
   \label{tab:hef-meta}
   \begin{tabular}{ll}
     \toprule
     Field & Value \\
     \midrule
     Architecture & HAILO8 \\
-    Network group & \texttt{yolov8\_custom} (Single Context) \\
-    Network & \texttt{yolov8\_custom/yolov8\_custom} \\
+    Network group & \texttt{yolov8n} (Single Context) \\
+    Network & \texttt{yolov8n/yolov8n} \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 \begin{table}[tb]
   \centering
+  \small
   \caption{VStream infos.}
   \label{tab:vstream}
-  \begin{tabular}{lll}
+  \begin{tabular}{llp{0.3\linewidth}}
     \toprule
     Direction & Name & Spec \\
     \midrule
-    Input  & \texttt{yolov8\_custom/input\_layer1} & \texttt{UINT8, NHWC(960$\times$960$\times$3)} \\
-    Output & \texttt{yolov8\_custom/yolov8\_nms\_postprocess} & \texttt{FLOAT32, HAILO NMS BY CLASS} \\[-2pt]
-           &                                         & \small(number of classes: 5, max bboxes/class: 100, max frame size: 10020) \\
+    Input  & \texttt{yolov8n/input\_layer1}
+           & \texttt{UINT8, NHWC(960$\times$960$\times$3)} \\
+    Output & \texttt{yolov8n/yolov8\_nms\_postprocess}
+           & \texttt{FLOAT32, HAILO NMS BY CLASS} \\
+           & &
+           \small(number of classes: 5, max bboxes/class: 100, max frame size: 10020) \\
     \bottomrule
   \end{tabular}
 \end{table}
+
 
 \begin{table}[tb]
   \centering
