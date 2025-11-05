@@ -942,6 +942,7 @@ Hailo-8 AI accelerator with 26 TOPS.
 
 \section{Results}
 
+\subsection{Image size influence on model performance}
 
 Table~\ref{tab:yolo11n_resolution} compares YOLO11n evaluated on the screw test set
 at two input resolutions, $640\times640$ and $960\times960$. Overall, the model achieves
@@ -1049,9 +1050,22 @@ for latency-constrained deployments on CPU.
     \end{figure}
 
 
+Table~\ref{tab:val_summaries} compares the validation performance of the three nano
+models on the screw validation set. Overall, all architectures achieve strong detection
+quality, with class mAP$_{50\mbox{--}95}$ values between 0.728 and 0.742.
+YOLO8n attains the highest mAP$_{50}$ (0.964) and competitive mAP$_{50\mbox{--}95}$
+(0.733), while YOLO11n slightly improves the overall mAP$_{50\mbox{--}95}$ to 0.742
+at the cost of a marginal drop in precision (0.920 vs.\ 0.927). YOLO10n sits in between,
+with the best mAP$_{50}$ (0.969) but a slightly lower mAP$_{50\mbox{--}95}$ (0.728).
 
-
-
+Across classes, all three models perform best on \textit{nut}, \textit{washer}
+and \textit{wood\_screw}, where precision and recall are above 0.95
+and mAP$_{50\mbox{--}95}$ reaches 0.76–0.91. In terms of runtime, all nano models
+show very similar behaviour on the Raspberry Pi~5, with preprocessing around 8--9\,ms
+and inference between approximately 1.0 and 1.1\,s per image. The differences in
+latency (YOLO8n being slightly faster than YOLO10n and YOLO11n) are small compared
+to the overall inference time, so model choice is primarily driven by the modest
+accuracy differences rather than runtime on this platform.
 
 
 \begin{table}[!t]
@@ -1074,62 +1088,70 @@ for latency-constrained deployments on CPU.
   \hline
   \end{tabular}
   \par\smallskip
-  \small Speed per image (GPU): preprocess 4.5\,ms; inference 6.0\,ms; loss 0.0\,ms; postprocess 2.5\,ms.
-  \par\smallskip
   \small Speed per image (Raspberry Pi 5): preprocess 8.3\,ms; inference 1018.4\,ms; loss 0.0\,ms; postprocess 1.2\,ms.
-  \par\smallskip
-  \small Speed per image (Raspberry Pi 5 + Hailo): Frames: 50, time: 18.5s, avg FPS: 2.71
-  \par\smallskip
-  \small Model summary (fused): 72 layers, 3,006,623 parameters, 0 gradients, 8.1 GFLOPs
 \end{subtable}
 
 \medskip
 
 \begin{subtable}{\linewidth}
   \centering
-  \caption{YOLO11s}
+  \caption{YOLO10n}
   \begin{tabular}{lrrrrrr}
   \hline
   Class & Images & Instances & Box(P) & R & mAP$_{50}$ & mAP$_{50\mbox{--}95}$ \\
   \hline
-  all            & 98 & 363 & 0.939 & 0.934 & 0.966 & 0.746 \\
-  machine\_screw & 25 & 123 & 0.877 & 0.983 & 0.978 & 0.649 \\
-  miscellaneous  & 14 &  16 & 0.899 & 0.688 & 0.867 & 0.565 \\
-  nut            & 16 &  41 & 0.970 & 1.000 & 0.995 & 0.805 \\
-  washer         & 20 &  43 & 0.973 & 1.000 & 0.995 & 0.909 \\
-  wood\_screw    & 37 & 140 & 0.978 & 1.000 & 0.995 & 0.802 \\
+  all            & 98 & 363 & 0.924 & 0.920 & 0.969 & 0.728 \\
+  machine\_screw & 25 & 123 & 0.917 & 0.893 & 0.935 & 0.584 \\
+  miscellaneous  & 14 &  16 & 0.921 & 0.729 & 0.933 & 0.602 \\
+  nut            & 16 &  41 & 0.962 & 1.000 & 0.995 & 0.787 \\
+  washer         & 20 &  43 & 0.957 & 1.000 & 0.995 & 0.901 \\
+  wood\_screw    & 37 & 140 & 0.863 & 0.979 & 0.986 & 0.764 \\
   \hline
   \end{tabular}
   \par\smallskip
-  \small Speed per image (GPU): preprocess 4.5\,ms; inference 9.8\,ms; loss 0.0\,ms; postprocess 3.7\,ms.
-  \par\smallskip
-  \small YOLO11s summary (fused): 100 layers, 9,414,735 parameters, 0 gradients, 21.3 GFLOPs
+  \small Speed per image (Raspberry Pi 5): preprocess 8.0\,ms; inference 1033.1\,ms; loss 0.0\,ms; postprocess 0.3\,ms.
 \end{subtable}
 
 \medskip
 
 \begin{subtable}{\linewidth}
   \centering
-  \caption{YOLO11n \cite{yolo11_ultralytics}}
+  \caption{YOLO11n}
   \begin{tabular}{lrrrrrr}
   \hline
   Class & Images & Instances & Box(P) & R & mAP$_{50}$ & mAP$_{50\mbox{--}95}$ \\
   \hline
-  all            & 98 & 363 & 0.921 & 0.935 & 0.964 & 0.739 \\
-  machine\_screw & 25 & 123 & 0.844 & 0.935 & 0.957 & 0.611 \\
-  miscellaneous  & 14 &  16 & 0.922 & 0.741 & 0.888 & 0.608 \\
-  nut            & 16 &  41 & 0.970 & 1.000 & 0.995 & 0.799 \\
-  washer         & 20 &  43 & 0.996 & 1.000 & 0.995 & 0.902 \\
-  wood\_screw    & 37 & 140 & 0.873 & 1.000 & 0.983 & 0.773 \\
+  all            & 98 & 363 & 0.920 & 0.933 & 0.961 & 0.742 \\
+  machine\_screw & 25 & 123 & 0.842 & 0.927 & 0.945 & 0.609 \\
+  miscellaneous  & 14 &  16 & 0.922 & 0.739 & 0.889 & 0.620 \\
+  nut            & 16 &  41 & 0.969 & 1.000 & 0.995 & 0.799 \\
+  washer         & 20 &  43 & 0.995 & 1.000 & 0.995 & 0.908 \\
+  wood\_screw    & 37 & 140 & 0.872 & 1.000 & 0.983 & 0.772 \\
   \hline
   \end{tabular}
   \par\smallskip
-  \small Speed per image (GPU): preprocess 0.5\,ms; inference 5.6\,ms; loss 0.0\,ms; postprocess 0.9\,ms.
-  \par\smallskip
-  \small 100 layers, 2,583,127 parameters, 0 gradients, 6.3 GFLOPs.
+  \small Speed per image (Raspberry Pi 5): preprocess 8.8\,ms; inference 1104.2\,ms; loss 0.0\,ms; postprocess 1.4\,ms.
 \end{subtable}
-
 \end{table}
+
+\subsection{Hailo impact}
+
+The impact of offloading inference to the Hailo-8 accelerator is significant.
+While the Raspberry Pi~5 CPU executes the nano models at around 1~s per image
+(cf.\ Table~\ref{tab:val_summaries}), the Hailo benchmark for the
+compiled \texttt{yolov8n.hef} reports over 140~FPS in both HW-only and
+streaming modes, with a hardware latency of only 10.8~ms per frame
+(Table~\ref{tab:hailo-bench}). This corresponds to more than two orders
+of magnitude improvement in throughput compared to pure CPU execution.
+The HEF metadata in Table~\ref{tab:hef-meta} confirms
+that the network is mapped to a single \texttt{yolov8n} context on the HAILO8
+architecture, while Tables~\ref{tab:vstream} and~\ref{tab:nms-params} show
+that both the input tensor and the YOLOv8-specific NMS post-processing
+(including class-aware suppression and bounding-box limits) are integrated into
+the accelerator pipeline. This means that the entire detection
+stage---from raw image tensor to filtered detections---can be executed
+on the Hailo device with minimal CPU involvement, enabling real-time operation
+on the conveyor setup where the Raspberry Pi~5 alone is clearly insufficient.
 
 
 \begin{table}[tb]
