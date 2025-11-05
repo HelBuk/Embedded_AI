@@ -231,7 +231,6 @@ TOPS & Tera Operations Per Second \\
 TP & True Positive \\
 uEye & IDS camera/product line \\
 VStream & (Hailo) Virtual Stream (I/O stream abstraction) \\
-Vulkan & Low-level graphics/compute API \\
 
 \end{longtable}
 \cleardoublepage
@@ -340,9 +339,9 @@ Vulkan & Low-level graphics/compute API \\
     In order to particularly train model on fasteners, a MVTec screws
     dataset \cite{ulrich2019comparison} might be used.
     This dataset has oriented-box annotations for screws/nuts
-    (384 images, 4,426 OBBs). However, the labeling.
+    (384 images, 4,426 OBBs). However, the labels are OBB.
 
-    These are the 13 categories used in the MVTec Screws oriented-box dataset
+    There are 13 categories used in the MVTec Screws oriented-box dataset
     (category\_id $\to$ name) :
 
     1 $\to$ long lag screw \\
@@ -366,7 +365,7 @@ Vulkan & Low-level graphics/compute API \\
     \end{figure}
 
     It is also possible to convert OBB annotation to AABB annotation with some
-    loss of information. In order to do so:
+    loss of information. In order to do so these steps can be followed.
 
     Let $w,h$ be side lengths and $\theta$ the rotation (radians, CCW). The tight
     axis-aligned box around the rotated rectangle has
@@ -406,14 +405,14 @@ Vulkan & Low-level graphics/compute API \\
 
 \section{The model choice}
 
-    For Edge AI, the trade-off between computational speed and
+    For Edge AI, the trade-off between computation speed and
     memory availability is critical. A model must not only deliver
     sufficiently high accuracy, but also remain compact to fit
     onto resource-constrained devices such as microcontrollers.
 
-    YOLO models family \ref{tab:yolo-timeline} presents state-of-the-art
+    YOLO models family (see Table \ref{tab:yolo-timeline}) presents state-of-the-art
     lightweight versions of model small and efficient enough to be used
-    on Edge-devices. They show good results for both - the prediction
+    on Edge-devices. The family shows good results for both - the prediction
     accuracy and inference speed.
 
     Before YOLO \cite{Redmon2016YOLO} the most common detection approaches used
@@ -460,12 +459,14 @@ Vulkan & Low-level graphics/compute API \\
     for other versions. It came out in PyTorch implementation, which made it easy
     to deploy, it had multiple sizes (s, m, l, x), so was is easy
     to adjust to the specific task and constraints. It also became possible to
-    export model to formats for mobile deployment (as ONNX).
-    Version 8 \ref{fig:yolov8_pair} focused more on improving model performance and flexibility.
-    Ultralytics improved the backbone. The model adopted anchor-free detection:
+    export model to formats for mobile deployment (such as ONNX).
+    Version 8 (see the weight structure in Fig. \ref{fig:yolov8_pair}) focused
+    more on improving model performance and flexibility.
+    Ultralytics team mainly improved the backbone. The model adopted anchor-free
+    detection:
     it predicts box coordinates and class probabilities without predefined
     anchor boxes. It simplified the training process and improved
-    its generalization. Version 11 released in 2024 by a Tsinghua University group
+    its generalization. Version 10 released in 2024 by a Tsinghua University group
     introduced an important strategy for the box deduplication. Normally YOLO
     models need an NMS post-process algorithm to remove duplicate detections
     of the same object, but version 10 presented NMS-free detection. It uses a
@@ -577,19 +578,21 @@ Vulkan & Low-level graphics/compute API \\
     \end{table*}
 
     There also exist some other successful approaches in real-time detection. One
-    of the earlier mentioned models - RT-DETR - uses a Transformer-based
+    of the earlier mentioned models - RT-DETR \cite{lv2023rtdetr} - uses a Transformer-based
     architecture. By using transformer decoder, it removes NMS entirely,
-    as was done in YOLOv10 too. It allows RT-DETR model performs excellent on GPU
+    as was done in YOLOv10 too. It allows RT-DETR model to perform excellent on GPU
     by efficiently utilizing transformers parallelization. However, YOLO models
-    still remain more parameter-efficient and faster on low-power device or CPUs.
-    The other well suitable for the Edge detection model is NanoDet. It targets
+    still remain more parameter-efficient and faster on low-power device or CPUs. \\
+
+    The other well suitable for the Edge detection model is NanoDet \cite{nanodet}. It targets
     fast CPU inference and deployment on edge devices. It can be as small as 0.95
     million parameters, which is smaller than YOLOv8n and Yolov11n models.
     Authours report a quantized INT8 NanoDet model having approximately 97 FPS on
     a mobile CPU. In spite of the speed, the model is notably less accurate, having
     34\% mAP with YOLOv8n having $37\%$ and YOLOv11n - $39.5\%$.
 
-    \textbf{Summary of comparison:} For edge hardware with limited or no GPU, YOLOv11-n or NanoDet would be preferred
+    \textbf{Summary of model comparison:} For edge hardware with limited or no GPU,
+    YOLOv11-n or NanoDet would be preferred
     due to their small size (with YOLO offering higher accuracy at a bit
     larger size). With a GPU or NPU, YOLOv11-s or even RT-DETR can be considered.
 
@@ -884,36 +887,58 @@ in the reference section \cite{embeddedaiproject-id4jh_dataset}
 
     The parameters logged while to capturing frames for the further annotation:
         \begin{itemize}
-            \item "fps": 7.0,
-            \item "exposure_ms": 80,
-            \item "width": 4912,
-            \item "height": 3684,
-            \item "color": true,
-            \item "frames": 70,
-            \item "frames_saved": 70,
-            \item "gain_percent": 10,
-            \item "gamma_100": 130,
+            \item fps: 7.0,
+            \item exposure, ms: 80,
+            \item width: 4912,
+            \item height: 3684,
+            \item color: true,
+            \item frames: 70,
+            \item frames saved: 70,
+            \item gain percent: 10,
+            \item gamma 100: 130,
       \end{itemize}
 
     \begin{figure}[H]
       \centering
       \includegraphics[width=0.4\linewidth]{pics/camera.png}
       \caption{The picture of the camera is taken from the IDS manual \cite{ids_ui3590cp_ab00606}}
-      \label{fig:roboflow_ex}
+      \label{fig:camera}
     \end{figure}
 
+    In order to configure a streaming, a Python IDS wrapper - pyueye \cite{pyueye} was used. \\
+
+    \textbf{Core concepts:}
+
+    \begin{description}
+      \item[Camera handle]
+        \texttt{hCam = ueye.HIDS(0)} – integer-like handle for one camera, used in nearly every call.
+
+      \item[Image memory]
+        Buffers allocated on the camera side; the driver tracks which buffer is “current”.
+
+      \item[AOI (Area of Interest)]
+        The sub-rectangle of the captured sensor: offset + width + height.
+
+      \item[Color mode / pixel format]
+        For example \texttt{UEYE\_RGB8\_PACKED}, \texttt{UEYE\_MONO8}, etc.
+    \end{description}
 
 
-
-\section{Architecture / Design Details}
-% Modules, interfaces, diagrams, constraints, trade-offs.
 
 % ======= 5 Implementation (Vår implementering) =======
 \chapter{Implementation}
 \noindent
-% Short intro
 \section{Key Implementation Details}
-% Technologies, algorithms, data structures, configurations, noteworthy engineering decisions.
+
+We trained 7 models (Yolo v8, v10, v11 -n/-s and RT-DETR-R18) to provide
+an overview of their performance in terms of accuracy and speed. For the training
+NVIDIA GeForce RTX 3070 was used. It provides for FP32 (single precision): 20 TFLOPs peak
+and has 8GB of RAM.
+After the training and evaluation on the GPU, models were deployed on Raspberry Pi 5
+for the on-device speed benchmarking and demo detection streaming.
+
+Then, models were compiled to the \texttt{.hef} format, so they could be run on a
+Hailo-8 AI accelerator with 26 TOPS.
 
 % ======= 6 Testing / Results (Vår uttesting / Resultater) =======
 \chapter{Testing and Results}
