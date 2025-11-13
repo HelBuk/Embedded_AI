@@ -1,6 +1,8 @@
 \documentclass[12pt,a4paper]{report}
 
 % ======= Packages =======
+\usepackage[norwegian, english]{babel}
+\usepackage{indentfirst}
 \usepackage[margin=2.5cm]{geometry}
 \usepackage{setspace}
 \usepackage{graphicx}
@@ -17,8 +19,27 @@
 \usepackage{amsmath}
 \usepackage{subcaption}
 \usepackage{url}
-\usepackage{csquotes}
 \usepackage{tabularx}
+\usepackage{amsfonts}
+\usepackage{nameref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{csquotes}
+\usepackage{amssymb}
+\lstdefinelanguage{json}{
+  morestring=[b]",
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  stringstyle=\color{blue!60!black},
+}
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  showstringspaces=false,
+  numbers=left,
+  numberstyle=\tiny,
+}
+
 
 \newcommand{\TP}{\mathrm{TP}}
 \newcommand{\FP}{\mathrm{FP}}
@@ -32,7 +53,8 @@
 % ======= Basic Formatting =======
 \onehalfspacing
 \setlength{\parskip}{6pt}
-\setlength{\parindent}{0pt}
+%\setlength{\parindent}{0pt}
+\setlength{\parindent}{2em}
 
 % TOC spacing a bit tighter
 \setlength{\cftbeforechapskip}{6pt}
@@ -49,15 +71,27 @@
 \rfoot{\thepage}
 
 % ======= Title Page Variables (edit these) =======
-\newcommand{\ReportTitle}{Embedded AI}
+\newcommand{\ThesisTitleEng}{Embedded AI for Real-Time Object Detection}
+\newcommand{\ThesisTitleNor}{Innebygd kunstig intelligens for sanntids objektdeteksjon}
 \newcommand{\AuthorName}{Bukueva Elena}
 \newcommand{\SupervisorName}{Geir Mathisen}
 
-\newcommand{\DepartmentName}{Faculty of Information Technology and Electrical Engineering}
+\newcommand{\FacultyName}{Faculty of Information Technology and Electrical Engineering}
+\newcommand{\DepartmentName}{Department of Engineering Cybernetics}
 \newcommand{\InstitutionName}{Norwegian University of Science and Technology (NTNU)}
 \newcommand{\LocationDate}{Trondheim, \today}
-\newcommand{\ThesisType}{Project}
+\newcommand{\ThesisType}{Specialization Project}
 \newcommand{\ReportSubtitle}{}
+\newcommand{\CourseCode}{TTK4551}
+\newcommand{\ThesisDescription}{Explore Edge AI constrains and deployment tools through the
+    task of Real-Time Fasteners Detection on Raspberry Pi 4\&5.}
+\newcommand{\TaskOne}{Prepare an annotated dataset containing 4 types of fasteners}
+\newcommand{\TaskTwo}{Perform on-GPU training and optimization for egde-device deploy}
+\newcommand{\TaskThree}{Program Real-Time Streaming on Raspberry Pi 4/5}
+\newcommand{\TaskFour}{Provide comparison analysis on model performance and optimization strategies}
+\newcommand{\StartDate}{11. August, 2025}
+\newcommand{\DueDate}{18. December, 2025}
+\newcommand{\ThesisLocation}{Department of Engineering Cybernetics}
 
 % ======= Document =======
 \begin{document}
@@ -65,108 +99,85 @@
 
 \hypersetup{pageanchor=false} % avoid duplicate page anchors in front matter
 
-
 % ======= Front Page (mirrors “NTNU’s standard front page” placeholder) =======
 \begin{titlepage}
-    \centering
-    \vspace*{1cm}
-    {\Large \InstitutionName\par}
-    \vspace{1.0cm}
-    {\large \DepartmentName\par}
-    \vfill
-    {\LARGE \textbf{\ReportTitle}\par}
-    \vspace{0.3cm}
-    {\Large \ReportSubtitle\par}
-    \vspace{1.2cm}
-    {\Large \textbf{\ThesisType}\par}
-    \vspace{1.2cm}
-    \begin{tabular}{@{}ll}
-        Author:      & \AuthorName \\
-        Supervisor:  & \SupervisorName \\
-        Date:        & \LocationDate \\
+    \thispagestyle{empty}
+
+        \noindent
+    NTNU\\
+    \FacultyName\\
+    \InstitutionName\\[0.5em]
+    \DepartmentName
+
+    \vspace{1cm}
+
+    \begin{center}
+        {\LARGE \textbf{Specialization Project}\par}
+    \end{center}
+
+    \noindent
+    \begin{tabular}{@{}p{4cm}p{10cm}@{}}
+        \textbf{Author:}              & \AuthorName \\[0.2cm]
+        \textbf{Course:}                & \CourseCode \\[0.5cm]
+        \textbf{Title (English):}   & \ThesisTitleEng \\[0.8cm]
+        \textbf{Title (Norwegian):} & \ThesisTitleNor \\[0.8cm]
+        \textbf{Thesis description:}     & \ThesisDescription \\[0.8cm]
+        \textbf{The tasks will be:}      &
+          \begin{minipage}[t]{10cm}
+            \begin{enumerate}
+              \item \TaskOne
+              \item \TaskTwo
+              \item \TaskThree
+              \item \TaskFour \\[0.5cm]
+            \end{enumerate}
+          \end{minipage} \\
+        \textbf{Start date:}             & \StartDate \\[0.2cm]
+        \textbf{Due date:}               & \DueDate \\[0.5cm]
+        \textbf{Thesis performed at:}    & \ThesisLocation \\[0.2cm]
+        \textbf{Supervisor:}             & \SupervisorName \\
     \end{tabular}
+
     \vfill
-    \includegraphics[width=0.25\textwidth]{ntnu_bredde_eng.png}\\[0.5cm]
+
+    \begin{center}
+        \includegraphics[width=0.25\textwidth]{ntnu_bredde_eng.png}\\[0.5cm]
+    \end{center}
 \end{titlepage}
 \cleardoublepage
 
-% ======= Task Description (Oppgavebeskrivelse) =======
-\chapter*{Task Description}
-\addcontentsline{toc}{chapter}{Task Description}
 
-\section*{Goal}
 
-    Explore Edge AI constrains and deployment tools through the
-    task of Real-Time Fasteners Detection on Raspberry Pi 4\&5.
-    The system must run on-device, produce stable detections
-    suitable for downstream sorting and meet latency, memory and
-    environment constraints typical for edge environments.
-
-\section*{Operating Context \& Constraints}
-
-    \begin{itemize}
-        \item Hardware: Raspberry Pi 4 (4 GB), Raspberry Pi 5 (8 GB) and Hailo-8 (26 TOPS) accelerator.
-        \item Camera: UI-3590CP-C-HQ Rev.2 - IDS uEye running up to 21 FPS with configurable exposure(e.g., 100 000 µs)
-        \item Environment: Conveyor Belt with chosen speed during inference -  2 cm/s; occasional vibration and lighting drift.
-    \end{itemize}
-
-\section*{Method}
-
-    \begin{itemize}
-        \item \textbf{Modeling}
-            \begin{itemize}
-                \item Defining the set of suitable for Edge AI models;
-                \item Exploration theirs constraints and performance;
-            \end{itemize}
-        \item \textbf{Annotation \& Dataset}
-            \begin{itemize}
-                \item Camera SDK setup and programming;
-                \item Define annotation format and tools;
-                \item Perform annotation and prepare suitable for the chosen model
-                    dataset;
-             \end{itemize}
-        \item \textbf{Training}
-            \begin{itemize}
-                \item Perform a Transfer Learning Training on a GPU;
-                \item Defining the pretrained weights based on the task
-                        and required annotation quality;
-            \end{itemize}
-        \item \textbf{Quantization \& Compilation}
-            \begin{itemize}
-                \item Configuration of a Hailo Compiler for the Hailo-8 AI
-                    Accelerator deployment;
-                \item INT8 PTQ with calibration set; Export .onnx → .har → .hef;
-            \end{itemize}
-        \item \textbf{Edge Pipeline}
-            \begin{itemize}
-                    \item Programming of the Camera Real-Time Streaming;
-                    \item Perform Real-Time Inference;
-                \item
-            \end{itemize}
-        \item \textbf{Benchmarking}
-            \begin{itemize}
-                \item CPU vs Hailo-8 AI comparison;
-                \item FPS and Detection Metrics measures;
-                \item Model Performance Comparison;
-            \end{itemize}
-    \end{itemize}
-
-    \section*{Deliverables}
-    \begin{itemize}
-        \item Annotated Dataset
-        \item Trained Weights (FP32 + INT8) and compiled \texttt{.hef} for YOLOv8 \& YOLO11 (-nano and -small)
-        \item Benchmark Report (tables, plots of accuracy, latency, FPS)
-        \item Deployment Guide (Raspberry Pi setup, uEye drivers installation guide, Hailo API configurations,
-            Calibration pack)
-    \end{itemize}
+%\begin{titlepage}
+%    \centering
+%    \vspace*{1cm}
+%    {\Large \InstitutionName\par}
+%    \vspace{1.0cm}
+%    {\large \DepartmentName\par}
+%    \vfill
+%    {\LARGE \textbf{\ReportTitle}\par}
+%    \vspace{0.3cm}
+%    {\Large \ReportSubtitle\par}
+%    \vspace{1.2cm}
+%    {\Large \textbf{\ThesisType}\par}
+%    \vspace{1.2cm}
+%    \begin{tabular}{@{}ll}
+%        Author:      & \AuthorName \\
+%        Supervisor:  & \SupervisorName \\
+%        Date:        & \LocationDate \\
+%    \end{tabular}
+%    \vfill
+%    \includegraphics[width=0.25\textwidth]{ntnu_bredde_eng.png}\\[0.5cm]
+%\end{titlepage}
+%\cleardoublepage
 
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 This project investigates practical Edge-AI deployment for the Real-Time fastener detection on
 Raspberry Pi 4/5, with and without Hailo-8 AI accelerator. It targets a detection on a
 conveyer belt with motion \( \approx 2 cm/s\), using an IDS uEye camera with maximum 21 FPS capability.
-A lightweight YOLO variants (v8n/v8s/v11n/v11s) are trained via transfer learning on a domain-specific
-fastener dataset. Four classes of objects are used during the training: machine screws, wood screws, nuts
+A lightweight YOLO variants (v8n/v8s/v10n/v10s/v11n/v11s) and a small RT-DETR-R18 transformer model
+are trained via transfer learning on a domain-specific fastener dataset.
+Four classes of objects are used during the training: machine screws, wood screws, nuts
 and washers. An additional fifth class is used to identify incomplete parts of the object, when neither
 a human, not a model can correctly classify an object. The dataset is prepared with the help of Roboflow framework, and it consists of 2131 augmented
 960x960 grayscale images. Models are exported to ONNX format and compiled with the Hailo toolchain
@@ -178,16 +189,44 @@ Evaluation performed based on standard detection metrics
 (latency/FPS). On GPU, all tested YOLO versions archived competitive accuracy on the gathered dataset.
 While on Raspberry PI 4/5 CPU, real-time throughput is not met, Hailo accelerator shows significantly
 higher raw inference capacity, having hardware benchmarks \( \approx 142 FPS\), while Pi 5 pipeline
-delivers \( \approx 1 FPS\). However the archieved inference accuracy after
+delivers \( \approx 1 FPS\). However, the archieved inference accuracy after
 the performed quantization is visibly lower than the pure YOLO PyTorch checkpoint inference.
 The studies on image size and NMS settings, and briefly analyzed quantization effects on small,
 fine-grained targets are reported.
 
+\begin{otherlanguage}{norwegian}
+\chapter*{Sammendrag}
+\addcontentsline{toc}{chapter}{Sammendrag}
+Dette prosjektet undersøker praktisk Edge-AI-utrulling for sanntidsdeteksjon av
+festekomponenter på
+Raspberry Pi 4/5, med og uten Hailo-8 AI-akselerator. Målet er deteksjon på et
+transportbånd med bevegelse \( \approx 2 cm/s\), ved bruk av et IDS uEye-kamera med maksimal kapasitet på 21 FPS.
+Lette YOLO-varianter (v8n/v8s/v10n/v10s/v11n/v11s) og en liten RT-DETR-R18-transformermodell
+trenes med overføringslæring på et domenespesifikt datasett for festekomponenter.
+Fire objektklasser brukes under treningen: maskinskruer, treskruer, muttere
+og skiver. En femte klasse brukes til å identifisere ufullstendige deler av objektet, der verken
+et menneske eller modellen kan klassifisere objektet korrekt. Datasettet er forberedt ved hjelp av Roboflow-rammeverket og består av 2131 augmenterte
+960x960 gråtonebilder. Modellene eksporteres til ONNX-format og kompileres med Hailo-verktøykjeden
+(ONNX \(\to\) HAR \(\to\) HEF) ved bruk av INT8 kvantisering etter trening fra et kalibreringssett. \\
+En diskusjon av valg av annotasjonsformat, kompilasjonsarbeidsflyt og begrensninger for inferens på enheten
+presenteres i litteraturoversiktskapittelet. \\
+Evalueringen er gjennomført basert på standard deteksjonsmetrikker
+(IoU, AP, mAP@0.50 og mAP@[0.5:0.95]) og kjøretid
+(latens/FPS). På GPU oppnådde alle testede YOLO-versjoner konkurransedyktig nøyaktighet på det innsamlede datasettet.
+På Raspberry Pi 4/5 CPU oppnås imidlertid ikke sanntidsgjennomstrømning, mens Hailo-akseleratoren viser betydelig
+høyere rå inferenskapasitet, med maskinvare-benchmarks på \( \approx 142 FPS\), mens Pi 5-rørledningen
+leverer \( \approx 1 FPS\). Den oppnådde inferensnøyaktigheten etter
+den utførte kvantiseringen er likevel merkbart lavere enn for ren YOLO-inferens fra PyTorch-sjekkpunkter.
+Det rapporteres også studier av bildestørrelse og NMS-innstillinger, samt en kort analyse av kvantiseringseffekter på små,
+finstrukturerte mål.
+\end{otherlanguage}
 
 \cleardoublepage
 % ======= Table of Contents =======
-\tableofcontents
-\cleardoublepage
+\begin{otherlanguage}{english}
+    \tableofcontents
+    \cleardoublepage
+\end{otherlanguage}
 
 % ======= Abbreviations (Brukte forkortelser) =======
 \chapter*{Abbreviations}
@@ -216,6 +255,7 @@ HN & Hailo Network (graph JSON inside HAR) \\
 IDS & Imaging Development Systems (uEye camera vendor) \\
 INT8 & 8-bit integer \\
 IoU & Intersection over Union \\
+LLM & Large Language Model \\
 L2/L3 & Level-2 / Level-3 CPU cache \\
 mAP & mean Average Precision \\
 NMS & Non-Maximum Suppression \\
@@ -225,6 +265,7 @@ ONNX & Open Neural Network Exchange \\
 OpenGL ES & OpenGL for Embedded Systems \\
 PTQ & Post-Training Quantization \\
 RAM & Random Access Memory \\
+SOTA & State-of-the-art \\
 SDK & Software Development Kit \\
 SoC & System on Chip \\
 TOPS & Tera Operations Per Second \\
@@ -240,20 +281,168 @@ VStream & (Hailo) Virtual Stream (I/O stream abstraction) \\
 % ======= 1 Introduction (Innledning) =======
 \chapter{Introduction}
 
-\section{Background of the Assignment}
-% Need, prior solutions, how this project fits into the bigger picture, what it builds upon.
 \section{Motivation}
-% Why this work is done.
+
+With the increase of interest in AI usage on small devices a problem of the on-deploy arises.
+In the past decade Artificial Intelligence field made a big progress in solving complex problems
+of Natural Language processing, Computer Vision and Robotics. However, most of the time
+such models require a lot of both, data and computing resources. For instance, the full training
+of state-of-the-art open source Large Language Model (LLM) - LLaMA (3 400 B)
+\cite{meta_llama3_github} would take approximately 125 million years on
+a Raspberry Pi (ARM Cortex A53) and a thousand GPU datasenter is required to train the model
+in a proper amount of working days. In many real production settings, such highly complex
+models are unnecessary; instead, there is a stronger demand for fast processing on small,
+resource-constrained devices. The trade-off between accuracy and speed becomes a central
+point of interest. This work aims to research a prossibily to perform a Real-Time inference
+on a constraned platform such as a Raspberry Pi 5 and cover a full chain from data collection
+on a real camera, through training and quantization, to deployment with the use of Hailo-8
+accelerator. We provide empirical data on the trade-off between different detector architectures
+(Yolo models family and RT-DERT), input resolutions, and quantization strategies. This project
+evaluates these small detection models on a fastener dataset and measures their behaviour under
+time and memory constraints.
+
 \section{Limitations}
-% Scope limitations; resource constraints and non-ideal choices.
+The project is subject to several practical and methodological limitations:
+
+    \begin{itemize}
+        \item \textbf{Narrow application domain:} The detector is trained and evaluated
+        only on four fastener classes: machine and wood screws, nuts and washers) in a single
+        conveyer-belt setup. The results do not directly generalize to arbitrary industrial scenes.
+        \item \textbf{Restricted hardware platform:} All on-device experiments are performed on a
+        Raspberry Pi 4 \& 5 with 4 and8 GB RAM, respectively, and a single Hailo-8 accelerator.
+        No comparison is made to other edge accelerators or microcontrollers.
+        The conclusions are specific to this hardware combinations.
+        \item \textbf{Model Choice} The experiment comparison is restricted to YOLOv8, YOLOv10, YOLOv11
+        nano and small variants as well as RT-DETR-R18. Moreover, only classic optmization strategies
+        provided by Hailo compiler are explored.
+        \item \textbf{Dataset constraints} The Transfer Learning is performed only on a
+        limited to 2131 grayscale images 960$\times$960 resolution. Although data augmentation
+        is applied, the number of unique physical parts, lighting conditions remains limited
+        compared to large public datasets.
+    \end{itemize}
+
 \section{Contributions}
-% Concise list of the novel/smart parts of the work.
+
+    Within these limitations, the main contributions of this specialization project are:
+
+    \begin{itemize}
+        \item \textbf{Domain-specific dataset:} Collection and annotation of a grayscale fastener dataset captured
+              with an IDS uEye industrial camera, including four main fastener classes and a fifth miscellaneous
+              class for incomplete or ambiguous parts.
+
+        \item \textbf{Model training and comparison:} Training and evaluation of seven detectors
+              (YOLOv8n/s, YOLOv10n/s, YOLOv11n/s, and RT-DETR-R18) on the fastener dataset, including experiments
+              with two input resolutions (640$\times$640 and 960$\times$960) and analysis of their precision, recall,
+              and mAP scores.
+
+        \item \textbf{Edge deployment pipeline:} Implementation of a deployment workflow from PyTorch
+              checkpoints to ONNX, HAR, and HEF, followed by on-device inference on Raspberry Pi 5 and the Hailo-8
+              accelerator. This includes configuring post-training INT8 quantization and integrating Hailo’s NMS
+              post-processing.
+
+        \item \textbf{Runtime benchmarking:} Systematic measurement of latency and throughput on the target hardware,
+              comparing CPU-only inference on Raspberry Pi 5 with accelerated inference on Hailo-8, and relating these
+              results to the throughput requirements of the conveyor-belt setup.
+
+        \item \textbf{Practical guidelines:} A set of concrete recommendations and configuration examples for future
+              Edge-AI projects at NTNU, covering camera setup, dataset preparation, model selection, and Hailo/ONNX
+              toolchain usage.
+    \end{itemize}
+
 \section{Thesis Structure}
-% 1–3 sentences about what each chapter contains.
+The remainder of this report is organised as follows:
+\begin{itemize}
+    \item \textbf{Chapter 2} presents the literature study, covering relevant datasets, annotation strategies,
+          and object-detection architectures, with a focus on the YOLO family and RT-DETR.
+    \item \textbf{Chapter 3} introduces the theoretical background, in particular the evaluation metrics used
+          for object detection such as IoU, precision/recall, AP, and mAP.
+    \item \textbf{Chapter 4} outlines the overall methodology and work plan, from model selection through
+          dataset creation, training, quantization, and deployment.
+    \item \textbf{Chapter 5} details the proposed solution and design, including the concrete dataset and
+          augmentation pipeline, camera configuration, Raspberry Pi and Hailo-8 setup, and the compilation flow.
+    \item \textbf{Chapter 6} presents the experimental setup and reports the main quantitative results for
+          accuracy and runtime on the different hardware platforms.
+    \item \textbf{Chapter 7} discusses the results, highlighting key trade-offs, failure modes, and the impact
+          of model choice, resolution, and quantization on performance.
+    \item \textbf{Chapter 8} concludes the thesis by summarising the main findings and reflecting on the extent
+          to which the original goals have been met.
+    \item \textbf{Chapter 9} outlines directions for future work, including
+          model improvements, and deeper integration into a complete industrial sorting system - with
+          a robotic-arm and compilation strategies research.
+\end{itemize}
 
 % ======= 2 Literature Study (Litteraturstudie) =======
 \chapter{Literature Study}
 \noindent
+\section{Introduction to Object Detection with Deep Learning Models}
+
+Artificial Intelligence (AI) is a broad term covering a set of algorithms and operations on
+matrices and vectors that enable computers to perform a big variety of tasks in language
+understanding and translation, object recognitions, robotic performance etc.
+We will consider only models performing object detection tasks, mostly having CNN \cite{krizhevsky2012imagenet}
+and Transformer \cite{vaswani2017attention} architectures.
+
+At a high level, a neural network model can be seen as a parameterized function
+\[
+    f_\theta : \mathbb{R}^{H \times W \times C} \rightarrow \mathcal{Y},
+\]
+
+where the input is an image with height \(H\), width \(W\), and \(C\) channels, and the output space
+\(\mathcal{Y}\) depends on the task. For object detection,
+\(\mathcal{Y}\) consists of a set of bounding boxes (see section 2.2) and class probabilities
+for each detected object.
+
+The vector \(\theta\) contains all trainable (optimized) parameters (weights and biases)
+of the network. \\
+
+It is common to use terms \enquote{training} and \enquote{inference} \cite{Goodfellow2016}.
+By training we understand some sort
+of iteration through a set of examples, so the model \enquote{learns} coefficients, approximating
+the distribution of the dataset. The more examples we have, the bigger share of general
+distribution we cover. We start training with some state of parameters (weights) \(\theta\).
+During training, parameters are iteratively updated so model’s outputs
+match the desired targets on a labeled dataset. This can be described as an optimization task,
+we iteratively search for coefficients, which minimise the difference of the chosen metric,
+computed on a model-labeled and human-labeled pictures. For example, for object detection we
+want to decrease a localization loss (how well the predicted boxes align with the true boxes)
+and a classification loss (how well the predicted classes match the true classes).
+Metrics used to evaluate the quality of the training are described in detail in
+the Chapter \ref{chap:literature}.
+During inference (forward pass), parameters are fixed, and model simply computes
+\(f_\theta(x)\) for an input image \(x\). \\
+
+
+The size of a neural network can be characterized by the number of parameters
+and the amount of computation (e.g.\ FLOPs) required per forward pass.
+Larger models typically have higher capacity and can represent more complex functions,
+which often leads to better accuracy when sufficient training data is available. \\
+
+However, on embedded devices such as Raspberry Pi 4/5, model size has
+several practical consequences:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Memory usage:} Large models may not fit into the limited RAM available on edge devices.
+    \item \textbf{Latency:} More parameters and layers lead to higher inference time, reducing FPS and making
+          real-time processing harder to achieve.
+    \item \textbf{Energy consumption:} Heavier models require more operations and therefore more power,
+          which is critical for battery-powered systems.
+\end{itemize}
+
+For Edge-AI applications, it is necessary to balance accuracy and model size/computational
+cost. This trade-off leads to the use of lightweight architectures
+(e.g. nano/small variants) and
+techniques such as quantization and hardware acceleration. \\
+
+Training a complex detector requires large, diverse datasets and big compute
+resources. So, it is common to rely on transfer learning. In transfer learning, a model
+is first trained on a large dataset (such as COCO \cite{Lin2014COCO}) and then adapted to a specific task
+or domain  by fine-tuning on a smaller, domain-specific dataset. \\
+
+In the context of this project, transfer learning enables the use of YOLO and RT-DETR models
+pretrained on large datasets, which are then fine-tuned on the fastener dataset.
+This approach reduces training time and improves accuracy compared to training
+an equivalent detector from random weights initialization, while still allowing the model to adapt
+to the specific visual properties of screws, nuts, washers, and miscellaneous parts.
 
 \section{Datasets and Annonation strategies for Detection Tasks}
     Object detection models localize objects on an input picture or on a set of video frames.
@@ -297,7 +486,7 @@ VStream & (Hailo) Virtual Stream (I/O stream abstraction) \\
     \cite{Redmon2016YOLO} \textit{detect} checkpoints (trained
     on COCO 2017) learn AABB by default:
 
-    \begin{verbatim}
+    \begin{lstlisting}[language=json, caption={COCO-style annotation entry}, label={lst:coco-json}]
     {
       "id": 1768,
       "image_id": 397133,
@@ -309,7 +498,9 @@ VStream & (Hailo) Virtual Stream (I/O stream abstraction) \\
         [78.0, 45.0, 86.0, 45.0, 95.0, 47.0, 101.0, 51.0, ...]
       ]
     }
-    \end{verbatim}
+    \end{lstlisting}
+
+
 
 
     \begin{figure}[H]
@@ -344,23 +535,35 @@ VStream & (Hailo) Virtual Stream (I/O stream abstraction) \\
     There are 13 categories used in the MVTec Screws oriented-box dataset
     (category\_id $\to$ name) :
 
-    1 $\to$ long lag screw \\
-    2 $\to$ lag wood screw \\
-    3 $\to$ wood screw \\
-    4 $\to$ short wood screw \\
-    5 $\to$ shiny screw \\
-    6 $\to$ black oxide screw \\
-    7 $\to$ nut \\
-    8 $\to$ bolt \\
-    9 $\to$ large nut \\
-    10 $\to$ nut \\
-    11 $\to$ nut \\
-    12 $\to$ machine screw \\
-    13 $\to$ short machine screw \\
-
-    \begin{figure}[H]
+    \begin{table}[H]
       \centering
-      \includegraphics[width=0.5\linewidth]{pics/screws_dataset.png}
+      \caption{MVTec Screws oriented-box categories}
+      \label{tab:mvtec-screws-cats}
+      \begin{tabular}{@{}rl@{}}
+        \toprule
+        \textbf{ID} & \textbf{Category} \\
+        \midrule
+         1 & long lag screw \\
+         2 & lag wood screw \\
+         3 & wood screw \\
+         4 & short wood screw \\
+         5 & shiny screw \\
+         6 & black oxide screw \\
+         7 & nut \\
+         8 & bolt \\
+         9 & large nut \\
+        10 & nut \\
+        11 & nut \\
+        12 & machine screw \\
+        13 & short machine screw \\
+        \bottomrule
+      \end{tabular}
+    \end{table}
+
+
+    \begin{figure}[!t]
+      \centering
+      \includegraphics[width=0.8\linewidth]{pics/screws_dataset.png}
       \caption{Example picture from the MVTec Screws dataset with OBB annotation \cite{MVTec_Screws_2020}}
     \end{figure}
 
@@ -516,12 +719,12 @@ VStream & (Hailo) Virtual Stream (I/O stream abstraction) \\
     \begin{figure}[!htbp]
       \centering
         \begin{subfigure}{0.48\columnwidth}
-        \includegraphics[width=0.6\linewidth]{pics/yolov8_start.pdf}
+        \includegraphics[width=0.9\linewidth]{pics/yolov8_start.pdf}
         \caption{Start of the graph}
         \label{fig:yolov8_start}
       \end{subfigure}
       \begin{subfigure}{0.48\columnwidth}  % or 0.48\textwidth in one-column docs
-        \includegraphics[width=0.6\linewidth]{pics/yolov8_end.pdf}
+        \includegraphics[width=0.9\linewidth]{pics/yolov8_end.pdf}
         \caption{End of the graph}
         \label{fig:yolo_end}
       \end{subfigure}\hfill
@@ -596,39 +799,6 @@ VStream & (Hailo) Virtual Stream (I/O stream abstraction) \\
     due to their small size (with YOLO offering higher accuracy at a bit
     larger size). With a GPU or NPU, YOLOv11-s or even RT-DETR can be considered.
 
-
-
-\section{Hardware}
-
-    Among the most popular development platforms is the Raspberry Pi
-    family, which offers a flexible setting for deploying
-    lightweight AI systems.
-    Raspberry Pi 5 used for this work includes:
-
-    \begin{tabular}{@{}p{0.34\linewidth}p{0.63\linewidth}@{}}
-        \multicolumn{2}{l}{\textbf{Compute}}\\
-        \midrule
-        SoC & 2.4\,GHz quad-core 64-bit Arm Cortex-A76 (crypto ext.); \\
-            & 512\,KB L2 per core, \\
-            & 2\,MB shared L3 \\
-        GPU & VideoCore VII; OpenGL ES 3.1, Vulkan 1.3 \\
-
-        \multicolumn{2}{l}{\textbf{Memory and Storage}}\\
-        \midrule
-        RAM &  8\, GB \\
-        microSD & 64\, GB \\
-        \midrule
-      \end{tabular}
-
-        An additional hardware used during the experiment is a Hailo-8
-        accelerator offering 26 TOPS inferencing performance
-        respectively.
-
-    However, the YOLOv8 and YOLOv11 are both provided by \textit{Ultralytics}
-    as a PyTorch checkout. In order to use it on accelerator, this checkout has
-    to be converted to a suitable format by Hailo Compiler.
-
-
 \section{Hailo Compiler}
 
     Hailo compiler \cite{hailo_manual} is needed to load user's models to the Hailo devices.
@@ -644,7 +814,7 @@ VStream & (Hailo) Virtual Stream (I/O stream abstraction) \\
 
     \begin{figure}[H]
       \centering
-      \includegraphics[width=0.5\linewidth]{pics/out_graph/hailo_flow.pdf}
+      \includegraphics[width=0.8\linewidth]{pics/out_graph/hailo_flow.pdf}
       \caption{Build Process \cite{hailo_manual}}
       \label{fig:hailo_flow}
     \end{figure}
@@ -758,10 +928,79 @@ represent models via graph structure.
 
 
 \section{Summary of the Literature Study}
+\label{sec:lit-summary}
+
+The literature review establishes the technical context and design space for real-time object detection
+on constrained edge hardware (Raspberry Pi 4/5) with optional NPU acceleration (Hailo-8).
+We surveyed (i) detection formulations and annotation strategies, (ii) dataset options and label formats,
+(iii) lightweight detector families suitable for edge deployment,
+and (iv) compilation/quantization toolchains required to execute modern models on dedicated accelerators.
+
+\textbf{Detection task \& annotations.}
+Object detection can be localized with axis-aligned boxes (AABB), oriented boxes (OBB),
+polygons, or pixel masks. While OBB/polygons align better with prolongated parts (e.g., screws),
+AABB remains the best choice for transfer learning with common pretrained weights (e.g., COCO)
+and for real-time deployment. The review also summarizes conversions from corner points
+and the practical AABB enclosure of OBBs, together with format mappings to COCO JSON and YOLO TXT.
+This motivates our use of AABB for the fastener domain to minimize engineering.
+
+\textbf{Datasets.}
+COCO is the dominant pretraining source for AABB detectors and ensures strong generalization,
+whereas DOTA provides OBB \texttt{*-obb} variants.
+A domain-specific fastener set (MVTec Screws) offers OBB labels but is limited in scale.
+Due to the fact that public datasets rarely contain fasteners, the study supports
+a compact, grayscale, task-specific dataset and to perform transfer learning from pretrained on COCO weights.
+
+\textbf{Model families for edge.}
+Single-stage YOLO variants remain the most practical for low-power deployments
+due to accuracy–latency trade-offs. In the past years YOLO evolved toward anchor-free heads,
+improved backbones, and—in v10—NMS-free training;
+YOLOv11 focuses on higher accuracy per parameter and streamlined exports.
+Transformer-based RT-DETR remover NMS and scales well on GPUs,
+but it is typically more compute-expensive on CPUs/edge. Ultra-samll models like NanoDet can reach
+very high CPU FPS with INT8 quantization, at the expense of accuracy. Overall, the review motivates
+evaluating YOLO -nano/-small variants first for Raspberry Pi CPUs, with RT-DETR as
+a comparative reference when acceleration or higher latency budgets exist.
+
+\textbf{Compilation and quantization.}
+Executing modern detectors on an NPU requires a specific toolchain. The Hailo flow
+(ONNX $\rightarrow$ HAR $\rightarrow$ HEF) translates graphs, calibrates activations,
+and performs graph/resource scheduling. The study explains linear INT8 PTQ
+(scale/zero-point, per-tensor ranges from calibration statistics), YOLO post-process/NMS,
+and context partitioning when models exceed on-chip resources.
+These mechanisms are important for moving the entire detection path
+(tensor in $\rightarrow$ filtered detections
+out) onto the accelerator, minimizing CPU load and PCIe/host transfers.
+
+\textbf{ONNX as an interchange.}
+ONNX is identified as the stable intermediate for exporting PyTorch checkpoints and enabling downstream
+compilation. Its operator coverage and ecosystem support reduce model operations variability across
+training and deployment.
+
+\paragraph{Implications for this project.}
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Labeling choice:} We will use AABB to align with pretrained YOLO checkpoints and simplify
+  the Hailo export pipeline. However, the use of OBB is still posible and might improve the quality of the detection.
+  \item \textbf{Model shortlist:} We prioritize YOLOv8/10/11 -nano/-small
+  for Raspberry Pi-only baselines. We also include RT-DETR-R18 - YOLO competitor, for transformer reference
+  and for the speed/quality tradeoff experiments.
+  \item \textbf{Tooling:} Standardize on PyTorch $\rightarrow$ ONNX and the Hailo compiler with INT8 PTQ
+  using a calibration set that matches deployment preprocessing.
+  \item \textbf{Performance strategy:} For strict real-time throughput,we run experiments on Hailo-8 with
+  post-processing
+\end{itemize}
+
+\paragraph{Gaps and risks.}
+OBB supervision could further improve fine orientation for screws but would require new pretraining
+or costly relabeling. Quantization sensitivity on small, fine-grained targets remains a risk. Careful
+calibration selection and post-training checks are necessary.
+Finally, runtime on Raspberry Pi pipelines is latency-limited, so the use of accelerator is crucial for
+real-time performance.
 
 
 % ======= Theory =======
 \chapter{Theory}
+\label{chap:literature}
 \section*{Metrics description}
 \textbf{Metrics description}:
 
@@ -778,24 +1017,27 @@ represent models via graph structure.
             The resulting score is a value between 0 and 1, which quantifies how accurately a model has located an
             object in an image. A score of 1 represents a perfect match, while a score of 0 indicates no
             overlap at all. \\
-            The key part of using IoU is to define \textit{"IoU threshold"}. This threshold is a predefined value
+            The key part of using IoU is to define \textit{\enquote{IoU threshold}}. This threshold is a predefined value
             (e.g., 0.5) that determines whether a prediction is correct. If the IoU score for a predicted box is
-            above this threshold, it is classified as a \textit{"true positive"}.
-            If the score is below, it's a \textit{"false positive"}. \\
+            above this threshold, it is classified as a \enquote{true positive} (TP).
+            If the score is below, it's a \enquote{false positive} (FP). \\
             This threshold directly influences other performance metrics like Precision and Recall. \\
 
     \item \textbf{Precision and Recall}: \\
             Precision defines the proportion of true positives among all positive predictions,
             measuring the ability to avoid misclassification. \\
             \[
-                \Precision = \frac{\TP}{\TP+\FP},
+                Precision (P) = \frac{\TP}{\TP+\FP},
             \]
 
             On the other hand, Recall calculates the proportion of true positives among all actual
             positives, measuring the model's ability to detect all instances of a class. \\
             \[
-                \Recall = \frac{\TP}{\TP+\FN},
+                Recall (R) = \frac{\TP}{\TP+\FN},
             \]
+    where \\
+    TP - True Positive, FP - False Positive, TN - True Negative and FN - False Negative
+    predictions. \\
 
     \item \textbf{Average Precision (AP)}: \\
         AP computes the area under the precision-recall curve \cite{Goodfellow2016}, providing a single value that encapsulates
@@ -838,10 +1080,54 @@ represent models via graph structure.
 
 \end{itemize}
 
+\chapter{Methodology}
+\noindent
+
+The worked is performed in 6 steps:
+
+    \begin{itemize}
+        \item \textbf{Modeling}
+            \begin{itemize}
+                \item Defining the set of suitable for Edge AI models;
+                \item Exploration theirs constraints and performance;
+            \end{itemize}
+        \item \textbf{Annotation \& Dataset}
+            \begin{itemize}
+                \item Camera SDK setup and programming;
+                \item Define annotation format and tools;
+                \item Perform annotation and prepare suitable for the chosen model
+                    dataset;
+             \end{itemize}
+        \item \textbf{Training}
+            \begin{itemize}
+                \item Perform a Transfer Learning Training on a GPU;
+                \item Defining the pretrained weights based on the task
+                        and required annotation quality;
+            \end{itemize}
+        \item \textbf{Quantization \& Compilation}
+            \begin{itemize}
+                \item Configuration of a Hailo Compiler for the Hailo-8 AI
+                    Accelerator deployment;
+                \item INT8 PTQ with calibration set; Export .onnx → .har → .hef;
+            \end{itemize}
+        \item \textbf{Edge Pipeline}
+            \begin{itemize}
+                    \item Programming of the Camera Real-Time Streaming;
+                    \item Perform Real-Time Inference;
+                \item
+            \end{itemize}
+        \item \textbf{Benchmarking}
+            \begin{itemize}
+                \item CPU vs Hailo-8 AI comparison;
+                \item FPS and Detection Metrics measures;
+                \item Model Performance Comparison;
+            \end{itemize}
+    \end{itemize}
+
 % ======= 4 Proposed Solution / Design (Vårt forslag til løsning / design) =======
 \chapter{Proposed Solution / Design}
 \noindent
-% Short intro
+
 \section{Dataset and Annotation }
 
 The dataset consists of 2131 images (see Fig. \ref{fig:roboflow_ex}), which are split into 1983 images for the training,
@@ -850,21 +1136,30 @@ and are grayscale.
 
 The augmentation includes:
 
-    \begin{itemize}
-        \item Outputs per training example: 3
-        \item Flip: Horizontal, Vertical
-        \item $90^\circ$ Rotate: Clockwise, Counter-Clockwise, Upside Down
-        \item Hue: Between $-24^\circ$ and $+24^\circ$
-        \item Saturation: Between -25\% and +25\%
-        \item Brightness: Between -22\% and +22\%
-        \item Exposure: Between -10\% and +10\%
-        \item Blur: Up to 2.5px
-       \item  Noise: Up to 1.72\% of pixels
-    \end{itemize}
+    \begin{table}[H]
+        \centering
+        \caption{Data augmentation settings.}
+        \begin{tabular}{ll}
+            \toprule
+            Parameter                    & Value                                  \\
+            \midrule
+            Outputs per training example & 3                                      \\
+            Flip                         & Horizontal, vertical                   \\
+            $90^\circ$ rotation          & Clockwise, counter-clockwise, upside down \\
+            Hue                          & Between $-24^\circ$ and $+24^\circ$   \\
+            Saturation                   & Between $-25\%$ and $+25\%$           \\
+            Brightness                   & Between $-22\%$ and $+22\%$           \\
+            Exposure                     & Between $-10\%$ and $+10\%$           \\
+            Blur                         & Up to 2.5\,px                         \\
+            Noise                        & Up to 1.72\% of pixels                \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
+
 
     \begin{figure}[H]
       \centering
-      \includegraphics[width=0.7\linewidth]{pics/roboflow_annotation_example.png}
+      \includegraphics[width=0.9\linewidth]{pics/roboflow_annotation_example_light.png}
       \caption{Roboflow Annotation Illustration}
       \label{fig:roboflow_ex}
     \end{figure}
@@ -885,25 +1180,33 @@ in the reference section \cite{embeddedaiproject-id4jh_dataset}
     IDS provides a uEye SDK, though which the control of streaming, configuration,
     exposure/gain, etc. is happening.
 
-    The parameters logged while to capturing frames for the further annotation:
-        \begin{itemize}
-            \item fps: 7.0,
-            \item exposure, ms: 80,
-            \item width: 4912,
-            \item height: 3684,
-            \item color: true,
-            \item frames: 70,
-            \item frames saved: 70,
-            \item gain percent: 10,
-            \item gamma 100: 130,
-      \end{itemize}
-
     \begin{figure}[H]
       \centering
-      \includegraphics[width=0.4\linewidth]{pics/camera.png}
+      \includegraphics[width=0.3\linewidth]{pics/camera.png}
       \caption{The picture of the camera is taken from the IDS manual \cite{ids_ui3590cp_ab00606}}
       \label{fig:camera}
     \end{figure}
+
+    The parameters logged while to capturing frames for the further annotation:
+
+    \begin{table}[H]
+        \centering
+        \begin{tabular}{ll}
+            \toprule
+            Parameter          & Value    \\
+            \midrule
+            FPS                & 7.0      \\
+            Exposure           & 80 ms    \\
+            Width              & 4912 px  \\
+            Height             & 3684 px  \\
+            Color              & true     \\
+            Frames captured    & 70       \\
+            Frames saved       & 70       \\
+            Gain               & 10\%     \\
+            Gamma (×100)       & 130      \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
 
     In order to configure a streaming, a Python IDS wrapper - pyueye \cite{pyueye} was used. \\
 
@@ -923,6 +1226,100 @@ in the reference section \cite{embeddedaiproject-id4jh_dataset}
         For example \texttt{UEYE\_RGB8\_PACKED}, \texttt{UEYE\_MONO8}, etc.
     \end{description}
 
+    \section{Hardware}
+
+    Among the most popular development platforms is a Raspberry Pi
+    family, which offers a flexible setting for deploying
+    lightweight AI systems.
+    Raspberry Pi 5 used for this work includes:
+
+    \begin{table}[h]
+      \centering
+      \caption{Raspberry Pi 5 specifications}
+      \label{tab:pi_specs}
+      \begin{tabular}{@{}p{0.34\linewidth} p{0.63\linewidth}@{}}
+        \multicolumn{2}{@{}l}{\textbf{Compute}}\tabularnewline\midrule
+        SoC & 2.4\,GHz quad-core 64-bit Arm Cortex-A76 (crypto ext.)\\
+            & 512\,KB L2 per core\\
+            & 2\,MB shared L3\\
+        GPU & VideoCore VII; OpenGL ES 3.1, Vulkan 1.3\\[0.25em]
+
+        \multicolumn{2}{@{}l}{\textbf{Memory and Storage}}\tabularnewline\midrule
+        RAM     & 8\,GB\\
+        microSD & 64\,GB\\[0.25em]
+
+        \multicolumn{2}{@{}l}{\textbf{Performance (theoretical)}}\tabularnewline\midrule
+        Estimated FP32 peak & 76.8\,GFLOPs (2.4\,GHz)\\
+      \end{tabular}
+    \end{table}
+
+
+    An additional hardware used during the experiment is a Hailo-8
+    accelerator offering 26 TOPS inferencing performance
+    respectively.
+
+    However, the YOLOv8 and YOLOv11 are both provided by Ultralytics
+    as a PyTorch checkout. In order to use it on accelerator, this checkout has
+    to be converted to a suitable format by Hailo Compiler.
+
+    \vspace{0.8em}
+    Model training and evaluation were conducted on a host machine provided by NTNU,
+    equipped with an AMD Ryzen 9 5900X CPU and an NVIDIA GeForce RTX 3070 GPU.
+    Their detailed specifications are presented in Tables~\ref{tab:cpu_specs} and~\ref{tab:gpu_specs}.
+
+        \begin{table}[H]
+      \centering
+      \caption{GPU specifications: NVIDIA GeForce RTX 3070 (Ampere, GA104)}
+      \label{tab:gpu_specs}
+      \begin{tabular}{@{}ll@{}}
+        \toprule
+        \textbf{Property} & \textbf{Value} \\
+        \midrule
+        Architecture            & Ampere (GA104) \\
+        CUDA cores              & 5,888 \\
+        Tensor cores (3rd gen)  & 184 \\
+        RT cores (2nd gen)      & 46 \\
+        Base / Boost clock      & 1.5 GHz / 1.73 GHz \\
+        Memory (VRAM)           & 8 GB GDDR6 \\
+        Memory bus width        & 256-bit \\
+        Memory bandwidth        & \(\sim\)448 GB/s \\
+        CUDA version            & 12.4 \\
+        FP32 (single precision) & \(\sim\)20 TFLOPs (peak) \\
+        Form factor             & PCIe 4.0 \(\times\)16 \\
+        \bottomrule
+      \end{tabular}
+    \end{table}
+
+    \begin{table}[H]
+    \centering
+    \caption{Host CPU specifications: AMD Ryzen 9 5900X}
+    \label{tab:cpu_specs}
+    \begin{tabular}{@{}ll@{}}
+    \toprule
+    Property & Value \\
+    \midrule
+    Architecture                               & x86\_64 \\
+    CPU op-modes                               & 32-bit, 64-bit \\
+    Address sizes                              & 48-bit physical, 48-bit virtual \\
+    CPU(s)                                     & 24 (threads) \\
+    Cores / Threads / Sockets                  & 12 / 2 / 1 \\
+    Vendor                                     & AuthenticAMD \\
+    Model name                                 & AMD Ryzen 9 5900X 12-Core Processor \\
+    Family / Model / Stepping                  & 25 / 33 / 2 \\
+    Frequency boost                            & enabled \\
+    Max / Min freq                             & 4950.2 MHz / 2200.0 MHz \\
+    BogoMIPS                                   & 7385.80 \\
+    L1d / L1i (sum)                            & 384 KiB / 384 KiB (12 inst.) \\
+    L2 / L3 (sum)                              & 6 MiB (12 inst.) / 64 MiB (2 inst.) \\
+    Estimated FLOPS                            & 0.71 TFLOPs (FP32 peak\, 3.7 GHz) \\
+    \bottomrule
+    \end{tabular}
+    \end{table}
+
+    \section{Demonstration}
+
+    Some demo pictures are listed in Appendix A at the end of the report.
+
 
 % ======= 6 Testing / Results (Vår uttesting / Resultater) =======
 \chapter{Testing and Results}
@@ -930,105 +1327,46 @@ in the reference section \cite{embeddedaiproject-id4jh_dataset}
 % Short intro
 \section{Experimental Setup}
 
-We trained 7 models (Yolo v8, v10, v11 -n/-s and RT-DETR-R18) to provide
+We trained seven models (Yolo v8, v10, v11 -n/-s and RT-DETR-R18) to provide
 an overview of their performance in terms of accuracy and speed. For the training
-NVIDIA GeForce RTX 3070 was used. It provides for FP32 (single precision): 20 TFLOPs peak
+NVIDIA GeForce RTX 3070 was used, which provides up to 20 TFLOPs of FP32 (single-precision)
 and has 8GB of RAM.
 After the training and evaluation on the GPU, models were deployed on Raspberry Pi 5
 for the on-device speed benchmarking and demo detection streaming.
 
-Then, models were compiled to the \texttt{.hef} format, so they could be run on a
+Then, models were optimized and compiled to the \texttt{.hef} format, so they could be run on a
 Hailo-8 AI accelerator with 26 TOPS.
 
 \section{Results}
 
-\subsection{Image size influence on model performance}
+\subsection{Runtime analysis}
 
-Table~\ref{tab:yolo11n_resolution} compares YOLO11n evaluated on the screw test set
-at two input resolutions, $640\times640$ and $960\times960$. Overall, the model achieves
-very similar performance at both scales: the mAP$_{50\text{--}95}$
-stays mostly unchanged (0.737 vs.\ 0.740), while precision and recall slightly
-improve at $960\times960$ (from 0.930/0.922 to 0.938/0.963). For most classes,
-mAP$_{50}$ and mAP$_{50\text{--}95}$ either increase
-(e.g.\ \textit{nut} and \textit{wood\_screw}) or stay almost identical (\textit{washer}). The \textit{miscellaneous} class remains the most challenging: recall benefits from the higher resolution (0.687 to 0.846), but its mAP$_{50\text{--}95}$ slightly decreases (0.522 to 0.516), indicating that additional detections are partly offset by noisier localization or extra false positives.
-
-The normalized confusion matrices in Fig.~\ref{fig:yolov11n_cm_compare} provide
-a qualitative view of these effects. At $640\times640$
-(Fig.~\ref{fig:yolov11n_cm_640}), most probability mass already lies on the diagonal,
-with occasional confusion between \textit{machine\_screw} and \textit{miscellaneous},
-and between \textit{wood\_screw} and the background. At $960\times960$
-(Fig.~\ref{fig:yolov11n_cm_960}), the diagonal entries for \textit{machine\_screw},
-\textit{nut}, \textit{washer}, and \textit{wood\_screw} become slightly stronger,
-reflecting the small gains reported in Table~\ref{tab:yolo11n_resolution}. However, the
-\textit{miscellaneous} class continues to exhibit the largest off-diagonal mass,
-confirming that it is the dominant source of residual confusion.
-
-Finally, the validation log at $960\times960$ reports an average CPU inference
-time of 124.8\,ms per image (with 4.2\,ms for preprocessing and 0.5\,ms
-for postprocessing), i.e.\ roughly 8\,FPS. Given the marginal accuracy gains
-compared to $640\times640$, this highlights a clear resolution - speed trade-off:
-higher input resolution yields slightly more stable detections on most classes,
-but at a significant computational cost on the target hardware.
-
-\begin{table}[t]
-    \centering
-    \caption{YOLO11n test performance on the screw dataset for two input resolutions.}
-    \label{tab:yolo11n_resolution}
-    \begin{tabular}{lcccccccc}
-        \toprule
-        & \multicolumn{4}{c}{640$\times$640} & \multicolumn{4}{c}{960$\times$960} \\
-        \cmidrule(lr){2-5}\cmidrule(lr){6-9}
-        Class & P & R & mAP$_{50}$ & mAP$_{50\text{--}95}$ & P & R & mAP$_{50}$ & mAP$_{50\text{--}95}$ \\
-        \midrule
-        all             & 0.930 & 0.922 & 0.944 & 0.737 & 0.938 & 0.963 & 0.952 & 0.740 \\
-        machine\_screw  & 0.954 & 0.938 & 0.988 & 0.709 & 0.965 & 0.969 & 0.990 & 0.711 \\
-        miscellaneous   & 0.899 & 0.687 & 0.775 & 0.522 & 0.916 & 0.846 & 0.789 & 0.516 \\
-        nut             & 0.922 & 1.000 & 0.988 & 0.765 & 0.971 & 1.000 & 0.995 & 0.787 \\
-        washer          & 0.942 & 1.000 & 0.995 & 0.895 & 0.917 & 1.000 & 0.995 & 0.894 \\
-        wood\_screw     & 0.931 & 0.985 & 0.973 & 0.791 & 0.921 & 1.000 & 0.991 & 0.793 \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-\begin{figure}[t]
-    \centering
-    \begin{subfigure}[b]{0.48\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{pics/yolov11n_confusion_matrix_640.png}
-        \caption{YOLO11n confusion matrix at $640\times640$.}
-        \label{fig:yolov11n_cm_640}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{pics/yolov11n_confusion_matrix_960.png}
-        \caption{YOLO11n confusion matrix at $960\times960$.}
-        \label{fig:yolov11n_cm_960}
-    \end{subfigure}
-    \caption{Comparison of YOLO11n confusion matrices at two input resolutions (Server CPU)}
-    \label{fig:yolov11n_cm_compare}
-\end{figure}
-
-\subsection{Runtime analysis at 640$\times$640}
-
-Figure~\ref{fig:detectors_640} summarizes the runtime characteristics of all evaluated detectors
-on the screw test video at $640\times640$ input resolution on CPU. For all models, the preprocessing
+Figure~\ref{fig:detectors_640_combined} summarises the runtime characteristics of all evaluated detectors
+on the screw test video at $640\times640$ input resolution on host CPU. For all models, the preprocessing
 and postprocessing stages are relatively cheap, staying around 2\,ms and below 0.5\,ms per frame
-respectively; the total latency is therefore dominated by the inference time.
+respectively, The total latency is dominated by the inference time.
 
 Among the YOLO variants, the nano models (YOLOv8n, YOLOv10n, YOLOv11n) achieve total runtimes between
-31.4\,ms and 34.3\,ms per frame, corresponding to roughly 30\,FPS. Despite small differences
+31.4\,ms and 34.3\,ms per frame, which is equal to 30\,FPS. Despite small differences
 in parameter count and GFLOPs, their inference times are very similar, with YOLOv8n being slightly
-faster and YOLOv10n/YOLOv11n incurring a modest overhead. The small models
-(YOLOv8s, YOLOv10s, YOLOv11s) roughly double the parameter count and GFLOPs compared to their nano counterparts, which is reflected in a near-doubling of the inference time (about 62–64\,ms) and a reduction to approximately 15\,FPS.
+faster than YOLOv10n/YOLOv11n. The small models (YOLOv8s, YOLOv10s, YOLOv11s) double the parameter
+count and GFLOPs compared to their nano version, which leads to a near-doubling of the inference
+time (about 62–64\,ms) and a reduction to approximately 15\,FPS.
 
-RT-DETR-R18 exhibits a markedly different runtime profile. With 21.9\,M parameters and an estimated
+RT-DETR-R18 shows a significantly different runtime profile. With 21.9\,M parameters and an estimated
 60\,GFLOPs, its inference time of 148.3\,ms leads to a total latency of 150.4\,ms per frame,
 i.e.\ about 6–7\,FPS on the same CPU. While preprocessing and postprocessing remain comparable
 to the YOLO models, the transformer-based backbone and head are substantially more expensive
-than the convolutional YOLO architectures. Overall, the table highlights a clear trade-off between
-model complexity and real-time performance, with the nano YOLO variants best suited
-for latency-constrained deployments on CPU.
+than the convolutional YOLO architectures. \\
+
+Figure \ref{fig:detectors_640_combined} highlights a clear trade-off between model complexity and real-time performance,
+with the nano YOLO variants best suited for latency-constrained deployments on host CPU. Taking into an account
+the hardware configuration of the host CPU (Table \ref{tab:cpu_specs}) and Raspberry Pi 5 CPU (Table \ref{tab:pi_specs}),
+the scaling factor is $\approxeq 0.71 TF / 0.0768 TF \approxeq x9.25$ slower on Pi if compute-bound and
+approximately x3 on practice.
+Then an estimation of the model performance on Raspberry Pi 5: lands at 1.1 FPS (nano), 0.6 FPS (small)
+and 0.24 FPS (RT-DETR).
+
 
     \begin{figure}[H]
       \centering
@@ -1050,22 +1388,33 @@ for latency-constrained deployments on CPU.
     \end{figure}
 
 
+
+\subsection{Performance overview}
+
+As shown in the runtime overview subsection, the YOLO models demonstrated the best inference performance,
+particularly the -nano variants. In this subsection, only the -nano versions of YOLO are compared against
+each other, focusing on their runtimes when executed on the Raspberry Pi 5 CPU and their mAP performance. \\
+
 Table~\ref{tab:val_summaries} compares the validation performance of the three nano
-models on the screw validation set. Overall, all architectures achieve strong detection
+models on the screw validation set v8n, v10n and v11n. Overall, all architectures achieve strong detection
 quality, with class mAP$_{50\mbox{--}95}$ values between 0.728 and 0.742.
 YOLO8n attains the highest mAP$_{50}$ (0.964) and competitive mAP$_{50\mbox{--}95}$
 (0.733), while YOLO11n slightly improves the overall mAP$_{50\mbox{--}95}$ to 0.742
 at the cost of a marginal drop in precision (0.920 vs.\ 0.927). YOLO10n sits in between,
-with the best mAP$_{50}$ (0.969) but a slightly lower mAP$_{50\mbox{--}95}$ (0.728).
+with the best mAP$_{50}$ (0.969) but a slightly lower mAP$_{50\mbox{--}95}$ (0.728). \\
 
-Across classes, all three models perform best on \textit{nut}, \textit{washer}
-and \textit{wood\_screw}, where precision and recall are above 0.95
+Across classes, all three models perform best on nut, washer
+and wood\_screw, where precision and recall are above 0.95
 and mAP$_{50\mbox{--}95}$ reaches 0.76–0.91. In terms of runtime, all nano models
-show very similar behaviour on the Raspberry Pi~5, with preprocessing around 8--9\,ms
+show very similar behaviour on the Raspberry Pi 5, with preprocessing around 8-9\,ms
 and inference between approximately 1.0 and 1.1\,s per image. The differences in
 latency (YOLO8n being slightly faster than YOLO10n and YOLO11n) are small compared
 to the overall inference time, so model choice is primarily driven by the modest
-accuracy differences rather than runtime on this platform.
+accuracy differences rather than runtime on this platform. \\
+
+From the comparison of these three models it seems that v8n is slightly better than
+v10 and v11, as it shows both the highest mAP$_{50}$ and the lowest inference time,
+however, models v10 and v11 have better trade-off between size and accuracy. \\
 
 
 \begin{table}[!t]
@@ -1134,13 +1483,124 @@ accuracy differences rather than runtime on this platform.
 \end{subtable}
 \end{table}
 
+\subsection{Prediction Examples}
+
+Figure \ref{fig:yolov8n_gt_pred} illustrates an example of YOLOv8n predictions obtained from the PyTorch checkpoint.
+For convenience of the presentation each image contains objects belonging to a single class only. As we can see, all objects
+are correctly classified. However, the confidence scores varies across classes. For example, prediction
+of the miscellaneous class has the lowest confidence score. It happens due to the limited amount of such objects in the training
+dataset. Objects of this class are also much more diverse, since screws, nuts, and washers can be classifyed
+as miscellaneous if only a partial view of these objects is present at the picture.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{/Users/helbuk/PycharmProjects/Embedded_AI/runs/detect/rf_yolo11s/val_batch2_labels.jpg}
+        \caption{Ground truth: yolov8n}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{/Users/helbuk/PycharmProjects/Embedded_AI/runs/detect/rf_yolo11s/val_batch2_pred.jpg}
+        \caption{Prediction: yolov8n}
+    \end{subfigure}
+    \caption{Ground truth and prediction for \texttt{yolov8n}.}
+    \label{fig:yolov8n_gt_pred}
+\end{figure}
+
+
+\subsection{Image size influence on model performance}
+
+Table~\ref{tab:yolo11n_resolution} compares YOLO11n evaluated on the screw test set
+at two input resolutions, $640\times640$ and $960\times960$. Overall, the model achieves
+very similar performance at both scales: the mAP$_{50\text{--}95}$
+stays mostly unchanged (0.737 vs.\ 0.740), while precision and recall slightly
+improve at $960\times960$ (from 0.930/0.922 to 0.938/0.963). For most classes,
+mAP$_{50}$ and mAP$_{50\text{--}95}$ either increase
+(e.g.\ nut and wood\_screw) or stay almost identical (washer). The miscellaneous class
+remains the most challenging: recall benefits from the higher resolution
+(0.687 to 0.846), but its mAP$_{50\text{--}95}$ slightly decreases (0.522 to 0.516),
+indicating that additional detections are partly offset by noisier localization or extra false positives.
+
+The normalized confusion matrices in Fig.\ref{fig:yolov11n_cm_640} and Fig.\ref{fig:yolov11n_cm_960} provide
+a qualitative view of these effects. At $640\times640$
+(Fig. \ref{fig:yolov11n_cm_640}), most probability mass already lies on the diagonal,
+with confusion between machine\_screw and miscellaneous,
+and between wood\_screw and the background. At $960\times960$
+(Fig.\ref{fig:yolov11n_cm_960}), the diagonal entries for machine\_screw,
+nut, washer, and wood\_screw become slightly stronger,
+reflecting the small gains reported in Table \ref{tab:yolo11n_resolution}. However, the
+miscellaneous class continues to show the largest off-diagonal mass,
+confirming that it is the main source of residual confusion.
+
+Finally, the validation log at $960\times960$ reports an average CPU inference
+time of 124.8\,ms per image (with 4.2\,ms for preprocessing and 0.5\,ms
+for postprocessing), i.e.\ roughly 8\,FPS. Given the marginal accuracy gains
+compared to $640\times640$, this highlights a clear resolution - speed trade-off:
+higher input resolution yields slightly more stable detections on most classes,
+but at a significant computational cost on the target hardware.
+
+\begin{table}[t]
+    \centering
+    \caption{YOLO11n test performance on the screw dataset for two input resolutions.}
+    \label{tab:yolo11n_resolution}
+    \begin{tabular}{lcccccccc}
+        \toprule
+        & \multicolumn{4}{c}{640$\times$640} & \multicolumn{4}{c}{960$\times$960} \\
+        \cmidrule(lr){2-5}\cmidrule(lr){6-9}
+        Class & P & R & mAP$_{50}$ & mAP$_{50\text{--}95}$ & P & R & mAP$_{50}$ & mAP$_{50\text{--}95}$ \\
+        \midrule
+        all             & 0.930 & 0.922 & 0.944 & 0.737 & 0.938 & 0.963 & 0.952 & 0.740 \\
+        machine\_screw  & 0.954 & 0.938 & 0.988 & 0.709 & 0.965 & 0.969 & 0.990 & 0.711 \\
+        miscellaneous   & 0.899 & 0.687 & 0.775 & 0.522 & 0.916 & 0.846 & 0.789 & 0.516 \\
+        nut             & 0.922 & 1.000 & 0.988 & 0.765 & 0.971 & 1.000 & 0.995 & 0.787 \\
+        washer          & 0.942 & 1.000 & 0.995 & 0.895 & 0.917 & 1.000 & 0.995 & 0.894 \\
+        wood\_screw     & 0.931 & 0.985 & 0.973 & 0.791 & 0.921 & 1.000 & 0.991 & 0.793 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\linewidth]{pics/yolov11n_confusion_matrix_640.png}
+        \caption{YOLO11n confusion matrix at $640\times640$.}
+        \label{fig:yolov11n_cm_640}
+    \end{figure}
+
+    \begin{figure}[tb]
+        \centering
+        \includegraphics[width=0.7\linewidth]{pics/yolov11n_confusion_matrix_960.png}
+        \caption{YOLO11n confusion matrix at $960\times960$.}
+        \label{fig:yolov11n_cm_960}
+    \end{figure}
+
+%\begin{figure}[h]
+%    \centering
+%    \begin{subfigure}[b]{0.5\linewidth}
+%        \centering
+%        \includegraphics[width=1.3\linewidth]{pics/yolov11n_confusion_matrix_640.png}
+%        \caption{YOLO11n confusion matrix at $640\times640$.}
+%        \label{fig:yolov11n_cm_640}
+%    \end{subfigure}
+%    \hfill
+%    \begin{subfigure}[b]{0.5\linewidth}
+%        \centering
+%        \includegraphics[width=1.3\linewidth]{pics/yolov11n_confusion_matrix_960.png}
+%        \caption{YOLO11n confusion matrix at $960\times960$.}
+%        \label{fig:yolov11n_cm_960}
+%    \end{subfigure}
+%    \caption{Comparison of YOLO11n confusion matrices at two input resolutions (Server CPU)}
+%    \label{fig:yolov11n_cm_compare}
+%\end{figure}
+
 \subsection{Hailo impact}
 
 The impact of offloading inference to the Hailo-8 accelerator is significant.
-While the Raspberry Pi~5 CPU executes the nano models at around 1~s per image
-(cf.\ Table~\ref{tab:val_summaries}), the Hailo benchmark for the
-compiled \texttt{yolov8n.hef} reports over 140~FPS in both HW-only and
-streaming modes, with a hardware latency of only 10.8~ms per frame
+While the Raspberry Pi 5 CPU executes the nano models at around 1s per image
+(see.\ Table \ref{tab:val_summaries}), the Hailo benchmark for the
+compiled \texttt{yolov8n.hef} reports over 140 FPS in both HW-only and
+streaming modes, with a hardware latency of only 10.8 ms per frame
 (Table~\ref{tab:hailo-bench}). This corresponds to more than two orders
 of magnitude improvement in throughput compared to pure CPU execution.
 The HEF metadata in Table~\ref{tab:hef-meta} confirms
@@ -1149,12 +1609,12 @@ architecture, while Tables~\ref{tab:vstream} and~\ref{tab:nms-params} show
 that both the input tensor and the YOLOv8-specific NMS post-processing
 (including class-aware suppression and bounding-box limits) are integrated into
 the accelerator pipeline. This means that the entire detection
-stage---from raw image tensor to filtered detections---can be executed
+stage from raw image tensor to filtered detections can be executed
 on the Hailo device with minimal CPU involvement, enabling real-time operation
-on the conveyor setup where the Raspberry Pi~5 alone is clearly insufficient.
+on the conveyor setup where the Raspberry Pi 5 alone is clearly insufficient.
 
 
-\begin{table}[tb]
+\begin{table}[h]
   \centering
   \caption{Hailo benchmark results for \texttt{yolov8n}.}
   \label{tab:hailo-bench}
@@ -1170,7 +1630,7 @@ on the conveyor setup where the Raspberry Pi~5 alone is clearly insufficient.
 \end{table}
 
 
-\begin{table}[tb]
+\begin{table}[!tb]
   \centering
   \caption{HEF metadata (\texttt{yolov8n.hef}).}
   \label{tab:hef-meta}
@@ -1185,7 +1645,7 @@ on the conveyor setup where the Raspberry Pi~5 alone is clearly insufficient.
   \end{tabular}
 \end{table}
 
-\begin{table}[tb]
+\begin{table}[!tb]
   \centering
   \small
   \caption{VStream infos.}
@@ -1205,7 +1665,7 @@ on the conveyor setup where the Raspberry Pi~5 alone is clearly insufficient.
 \end{table}
 
 
-\begin{table}[tb]
+\begin{table}[!tb]
   \centering
   \caption{Post-process (\texttt{YOLOV8-Post-Process}) parameters.}
   \label{tab:nms-params}
@@ -1224,8 +1684,6 @@ on the conveyor setup where the Raspberry Pi~5 alone is clearly insufficient.
     \bottomrule
   \end{tabular}
 \end{table}
-
-
 
 
 % Tables, figures; explain what the numbers mean.
@@ -1261,10 +1719,34 @@ on the conveyor setup where the Raspberry Pi~5 alone is clearly insufficient.
 % ======= Appendices (Vedlegg A/B) =======
 \appendix
 
-\chapter{Text (Appendix A)}
-% Additional materials, extended tables/figures, code listings if allowed.
+\chapter{Demonstration(Appendix A)}
 
-\chapter{Text (Appendix B)}
-% Additional materials.
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\linewidth]{pics/all_items.jpg}
+        \caption{All types of Fasteners used for detection}
+        \label{fig:fasteners}
+    \end{figure}
+
+     \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\linewidth]{pics/belt.jpg}
+        \caption{The conveyor belt}
+        \label{fig:belt}
+    \end{figure}
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\linewidth]{pics/belt_w_screws.jpg}
+        \caption{The conveyor belt with fasteners}
+        \label{fig:belt_w_screws}
+    \end{figure}
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\linewidth]{pics/pi.jpg}
+        \caption{The Raspberry Pi 5 with Performed Streeming}
+        \label{fig:pi_setup}
+    \end{figure}
 
 \end{document}
