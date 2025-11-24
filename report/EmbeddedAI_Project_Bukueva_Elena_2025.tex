@@ -322,19 +322,32 @@ of state-of-the-art open source Large Language Model (LLM) - LLaMA (3 400 B)
 \cite{meta_llama3_github} would take approximately 125 million years on
 a Raspberry Pi (ARM Cortex A53) and a thousand GPU datasenter is required to train the model
 in a proper amount of working days. In many real production settings, such highly complex
-models are unnecessary; instead, there is a strong demand for fast processing on small,
+models are unnecessary. Instead, there is a strong demand for fast processing on small,
 resource-constrained devices. The trade-off between accuracy and speed becomes a central
 point of interest.
 
 This work investigates the performance of compact object detection models for edge deployment,
-comparing CPU-only inference and Hailo-8–accelerated inference and exploring how software
+comparing CPU-only inference on a small device, standart computer and accelerator and exploring how software
 frameworks and optimization strategies affect results. As the primary deployment
 target, we use a Raspberry Pi 5, chosen for its balance of cost, good community support
 (camera drivers, Python packages, and tooling), official support for the Raspberry Pi AI Kit
-/ AI HAT+ based on the Hailo-8 accelerator, and its popularity in scientific research.
-The project initially started on a Raspberry Pi 4 Model B, but this board was soon replaced
-because our specific setup could not host the Hailo-8–based AI Kit and, in addition, provides
-less RAM and lower CPU performance than the Raspberry Pi 5.
+/ AI HAT+ based on the Hailo-8 accelerator, and its popularity in scientific research. Some runtime
+results are also performed on a host CPU (AMD Ryzen 9 5900X 12-Core Processor).
+The project initially started on a Raspberry Pi 4 Model B, but it was soon replaced to Raspberry Pi 5
+because Raspberry Pi 4 specific setup could not host the Hailo-8–based AI Kit and, in addition,
+it provides less RAM and lower CPU performance than the Raspberry Pi 5.
+
+In this project, we focus on detecting fasteners on a conveyor belt. This setup is close to real industrial
+use cases and can be easily extended to other objects. It also does not require a very large or complex dataset,
+which allows us to concentrate on the hardware and deployment aspects instead of spending most of the effort on
+defining and engineering the vision task itself.
+
+We use four types of objects for training: wood screws, metal screws, nuts, and washers. They differ in size and
+appear in various positions and orientations on the belt, which keeps the detection problem challenging. Object
+detection in general has a wide range of methods, from classical morphology and segmentation to modern transformer-based
+architectures and 3D detectors. Detection problems are important in many real-world applications, so there is already a
+lot of prior work and many approaches that run on standard hardware. This gives us a solid foundation to extend the work
+to edge devices and to compare models of different sizes and deployment strategies.
 
 We implement near real-time object detection on the Raspberry Pi 5 and cover the full processing
 pipeline: from data collection with a physical camera, through model training and quantization,
@@ -349,13 +362,14 @@ The project is subject to several practical and methodological limitations:
     \begin{itemize}
         \item \textbf{Narrow application domain:} The detector is trained and evaluated
         only on four fastener classes: machine and wood screws, nuts and washers, in a single
-        conveyer-belt setup. The results do not directly generalize to arbitrary industrial scenes.
+        conveyer-belt setup. We did not perform classification within classes e.g. classification
+        by an object type or classification in different from the conveyor belt environments.
         \item \textbf{Restricted hardware platform:} All on-device experiments are performed on a
-        Raspberry Pi 5 with 8 GB RAM, respectively, and a single Hailo-8 accelerator.
+        Raspberry Pi 5 with 8 GB RAM and a single Hailo-8 accelerator.
         No comparison is made to other edge accelerators or microcontrollers.
         The conclusions are specific to this hardware combinations.
         \item \textbf{Model Choice} The experiment comparison is restricted to YOLOv8, YOLOv10, YOLOv11
-        nano and small variants as well as RT-DETR-R18. Moreover, only classic optmization strategies
+        nano and small variants as well as RT-DETR-R18. Moreover, only classic model optmization strategies
         provided by Hailo compiler are explored.
         \item \textbf{Dataset constraints} The Transfer Learning is performed only on a
         limited to 2131 grayscale images 960$\times$960 resolution. Although data augmentation
@@ -495,6 +509,17 @@ pretrained on large datasets, which are then fine-tuned on the domain-specific f
 This approach reduces training time and improves accuracy compared to training
 an equivalent detector from random weights initialization, while still allowing the model to adapt
 to the specific visual properties of screws, nuts, washers, and miscellaneous parts.
+
+On the the other ways to speed up the inference is the use of additional accelerators (NPU).
+A CPU (Central Processing Unit) is designed to handle a wide variety of tasks, with complex control logic,
+deep caches, and relatively few powerful cores. It is very flexible, but not so efficient
+at the dense matrix multiplications and convolutions that dominate modern deep neural networks.
+An NPU (Neural Processing Unit) is specialized hardware built specifically for these operations.
+It typically uses many small compute units, highly parallel data paths, and low-precision arithmetic
+(for example INT8 instead of FP32) to achieve much higher throughput per watt for inference. Despite
+high speed for matrix multiplications, NPU is not as efficient as CPU for a big range of tasks and
+cannot be used as a full substitution. That is why, in this work, accelerator are considered only as
+an addition to a edge-devices.
 
 \section{Datasets and Annonation strategies for Detection Tasks}
     Object detection models localize objects on an input picture or on a set of video frames.
@@ -655,6 +680,13 @@ to the specific visual properties of screws, nuts, washers, and miscellaneous pa
     h               &= \frac{y_{\max}-y_{\min}}{H_{\text{img}}}.
     \end{align}
 
+    Another important step of the dataset formation is data augmentation. It is used to artificially increase
+    the diversity of the training images without collecting new data. By applying simple transformations such as flips,
+    crops, zooms, or changes in brightness and contrast, the model sees many different versions of the same objects.
+    This helps it become more robust to variations in viewpoint, scale, lighting, and background that will appear
+    in real deployments. In practice, augmentation reduces overfitting, improves generalization, and is especially
+    important when the original dataset is relatively small or collected in a very controlled environment,
+    as in our conveyor-belt setup.
 
 \section{The model choice}
 
@@ -1314,11 +1346,22 @@ in the reference section \cite{embeddedaiproject-id4jh_dataset}
     \end{table}
 
 
+
     An additional hardware used during the experiment is a Hailo-8
     accelerator offering 26 TOPS inferencing performance
     respectively.
 
-    However, the YOLOv8 and YOLOv11 are both provided by Ultralytics
+    The hardware setup was chosen to be representative of realistic edge deployments.
+    The Raspberry Pi serves as a low-power, widely available ARM platform that can both run the models on its own CPU
+    and act as a host controller for the external accelerator. The Hailo-8 NPU, attached via PCIe,
+    represents a class of specialized inference accelerators increasingly used in industrial and embedded systems
+    to meet strict real-time and power constraints. By combining these two, we can evaluate three aspects in a
+    controlled way: how far we can go with a CPU-only system, how much additional performance and efficiency
+    is gained by using an NPU, and what trade-offs this introduces in terms of compilation,
+    deployment complexity, and hardware cost.
+
+    \vspace{0.8em}
+    The YOLOv8 and YOLOv11 are both provided by Ultralytics
     as a PyTorch checkout. In order to use it on accelerator, this checkout has
     to be converted to a suitable format by Hailo Compiler.
 
@@ -1396,6 +1439,25 @@ for the on-device speed benchmarking and demo detection streaming.
 
 Then, models were optimized and compiled to the \texttt{.hef} format, so they could be run on a
 Hailo-8 AI accelerator with 26 TOPS.
+
+On average all models required around 100 epochs of training and default YOLO and RTDERT configutations.
+Training of YOLO models was performed with the Ultralytics YOLO framework using an input resolution of
+960×960 pixels (imgsz=960) and 640×640 pixels (imgsz=640). Each model was trained for up to 100 epochs
+(epochs=100) with a mini-batch size of 4 (batch=4) on a single GPU (device=0) and 4 data-loader workers
+(workers=4). To speed up training, images and labels were cached on disk (cache=disk). Mosaic augmentation
+was disabled during the last 10 epochs (close\_mosaic=10) to fine-tune on images that are closer to the real
+test distribution. A cosine learning-rate schedule was used (cos\_lr=True), and early stopping was enabled
+with a patience of 30 epochs (patience=30), i.e., training stopped if the validation metric did not improve
+for 30 consecutive epochs.
+
+RT-DETR with a PResNet-18 backbone (RT-DETR-R18) was trained on the custom COCO-format fastener dataset with 5 classes.
+Images were resized to 640×640 and processed using the standard RT-DETR augmentation pipeline. The backbone is a pretrained
+PResNet-18 (no frozen stages), followed by a HybridEncoder with three input feature levels (channels [128, 256, 512])
+and a hidden dimension of 256 with expansion 0.5. The transformer uses 3 decoder layers and 100 denoising queries.
+Training ran for 72 epochs with gradient clipping at a maximum L2 norm of 0.1. An exponential moving average (EMA) of
+the model weights was maintained during training (use\_ema=True) using a ModelEMA with decay 0.9999 and a warm-up of 2000
+steps. Distributed training was configured with find\_unused\_parameters=True to avoid issues with unused branches
+in the model graph.
 
 \section{Results}
 
